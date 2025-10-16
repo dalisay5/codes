@@ -1,0 +1,1335 @@
+//this project includes 4 files
+//circvector_tests.cpp file____________________________________________________________________________________________________________________
+/*
+Header: To sum up, this project builds two types of data structures like a
+circular vector and a linked list. These two can add, remove, get elements,
+check size, and check errors. Extra features include copying, assigning,
+converting to a string, searching, inserting, and etc. Also, GoogleTest unit
+tests check that everything works correctly with no memory leaks. Overall, the
+project teaches how to make safe and tested data structures.
+*/
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include "circvector.h"
+
+using namespace std;
+using namespace testing;
+
+// TEST(FakeTest, PleaseDeleteOnceYouWriteSome) {
+//   // If no tests exist, GoogleTest fails to compile with a fairly confusing
+//   // message. We have this empty test that does nothing to allow an empty
+//   // autograder submission to compile and regularly fail. Once you write your
+//   // own tests for the project, you can delete this one.
+//   EXPECT_THAT(1, Eq(1));
+// }
+
+// will empty size
+TEST(CircVectorCore, EmptySizeConstructor) {
+  CircVector<int> cvector;
+  // will check if true during emptying the cvector
+  EXPECT_TRUE(cvector.empty());
+  // will check if equal the size
+  EXPECT_EQ(cvector.size(), 0);
+}
+
+// will push front back
+TEST(CircVectorCore, PushFrontBack) {
+  CircVector<int> cvector;
+  // will push 10 to back
+  cvector.push_back(10);
+  // will check if equal at to 10
+  EXPECT_EQ(cvector.at(0), 10);
+  // will push to front 5
+  cvector.push_front(5);
+  // will check if equal at [0]
+  EXPECT_EQ(cvector.at(0), 5);
+  // will check if equal at [1]
+  EXPECT_EQ(cvector.at(1), 10);
+  // will check if equal at size
+  EXPECT_EQ(cvector.size(), 2);
+}
+
+TEST(CircVectorCore, PopFrontBack) {
+  CircVector<int> cvector;
+  // will loop 3 times
+  for (int i = 1; i <= 3; i++) {
+    // will push back i
+    cvector.push_back(i);
+  }
+  // will remove 3
+  cvector.pop_back();
+  // will check if equal at size
+  EXPECT_EQ(cvector.size(), 2);
+  // will check if equal
+  EXPECT_EQ(cvector.at(1), 2);
+
+  // will remove 1
+  cvector.pop_front();
+  // will check if equal at size
+  EXPECT_EQ(cvector.size(), 1);
+  // will check if equal at [0]
+  EXPECT_EQ(cvector.at(0), 2);
+}
+
+TEST(CircVectorCore, ClearRemovesAll) {
+  CircVector<int> cvector;
+  // will loop 4 times
+  for (int i = 0; i < 4; i++) {
+    // will push back the i
+    cvector.push_back(i);
+  }
+  // will clear cvector
+  cvector.clear();
+  // will check if true at empty
+  EXPECT_TRUE(cvector.empty());
+  // will check if equal
+  EXPECT_EQ(cvector.size(), 0);
+}
+
+TEST(CircVectorCore, AtInvalidIndex) {
+  CircVector<int> cvector;
+  cvector.push_back(42);
+
+  // Check that accessing invalid indices throws an exception
+  EXPECT_THROW(cvector.at(1), std::out_of_range);
+  EXPECT_THROW(cvector.at(100), std::out_of_range);
+
+  // Check that valid indices do NOT throw
+  EXPECT_NO_THROW(cvector.at(0));
+  EXPECT_EQ(cvector.at(0), 42);
+}
+
+TEST(CircVectorCore, ResizeAndWrapAround) {
+  CircVector<int> vec(3);
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+  vec.push_back(4);  // triggers resize
+  EXPECT_EQ(vec.size(), 4);
+  EXPECT_EQ(vec.at(0), 1);
+  EXPECT_EQ(vec.at(3), 4);
+}
+
+// Test at() throws for upper bound and returns correct values
+TEST(CircVectorCore, AtBoundsCheck) {
+  CircVector<int> v;
+  v.push_back(1);
+  v.push_back(2);
+  EXPECT_EQ(v.at(0), 1);
+  EXPECT_EQ(v.at(1), 2);
+  EXPECT_THROW(v.at(2), std::out_of_range);  // upper bound
+  EXPECT_THROW(v.at(100), std::out_of_range);
+}
+
+// Test clear resets size but allows reuse
+TEST(CircVectorCore, ClearResetsSizeAndAllowsReuse) {
+  CircVector<int> v;
+  v.push_back(10);
+  v.push_back(20);
+  EXPECT_EQ(v.size(), 2);
+  v.clear();
+  EXPECT_EQ(v.size(), 0);
+  EXPECT_TRUE(v.empty());
+  // Should be able to push again
+  v.push_back(30);
+  EXPECT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), 30);
+}
+
+// Test pop_back and pop_front update size and throw when empty
+TEST(CircVectorCore, PopUpdatesSizeAndThrows) {
+  CircVector<int> v;
+
+  // pop_back on empty
+  EXPECT_THROW(v.pop_back(), std::exception);  // accept any standard exception
+  // pop_front on empty
+  EXPECT_THROW(v.pop_front(), std::exception);
+
+  // pop_back updates size
+  v.push_back(1);
+  EXPECT_EQ(v.pop_back(), 1);
+  EXPECT_EQ(v.size(), 0);
+
+  // pop_front updates size
+  v.push_back(2);
+  EXPECT_EQ(v.pop_front(), 2);
+  EXPECT_EQ(v.size(), 0);
+}
+
+// Test push_back updates size correctly and wraps around
+TEST(CircVectorCore, PushBackWrapAround) {
+  CircVector<int> v(3);
+  v.push_back(1);
+  v.push_back(2);
+  v.push_back(3);
+  v.pop_front();   // front_idx = 1
+  v.push_back(4);  // should wrap to index 0
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 2);
+  EXPECT_EQ(v.at(1), 3);
+  EXPECT_EQ(v.at(2), 4);
+}
+
+// Test push_front updates size correctly and wraps around
+TEST(CircVectorCore, PushFrontWrapAround) {
+  CircVector<int> v(3);
+  v.push_back(1);
+  v.push_back(2);
+  v.push_back(3);
+  v.pop_back();     // size = 2
+  v.push_front(0);  // should wrap front_idx backwards
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 0);
+  EXPECT_EQ(v.at(1), 1);
+  EXPECT_EQ(v.at(2), 2);
+}
+
+// Constructor sets size to 0 and default capacity
+TEST(CircVectorCore, ConstructorInitializesCorrectly) {
+  CircVector<int> v;
+  EXPECT_EQ(v.size(), 0);
+  EXPECT_TRUE(v.empty());
+
+  CircVector<int> v2(5);
+  EXPECT_EQ(v2.size(), 0);
+  EXPECT_TRUE(v2.empty());
+}
+
+// Empty check returns true/false correctly
+TEST(CircVectorCore, EmptyReturnsCorrectValue) {
+  CircVector<int> v;
+  EXPECT_TRUE(v.empty());
+  v.push_back(10);
+  EXPECT_FALSE(v.empty());
+  v.pop_back();
+  EXPECT_TRUE(v.empty());
+}
+
+// Test multiple pops on single element vector
+TEST(CircVectorCore, PopOnSingleElementVector) {
+  CircVector<int> v;
+  v.push_back(99);
+  EXPECT_EQ(v.pop_front(), 99);
+  EXPECT_EQ(v.size(), 0);
+  v.push_back(42);
+  EXPECT_EQ(v.pop_back(), 42);
+  EXPECT_EQ(v.size(), 0);
+}
+
+// Test resize doubles capacity and preserves elements in order
+TEST(CircVectorCore, ResizePreservesElements) {
+  CircVector<int> v(2);
+  v.push_back(1);
+  v.push_back(2);
+  v.push_back(3);  // triggers resize
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 1);
+  EXPECT_EQ(v.at(1), 2);
+  EXPECT_EQ(v.at(2), 3);
+}
+
+// Test pop_back correctly wraps around when front_idx > 0
+TEST(CircVectorCore, PopBackWrapsCorrectly) {
+  CircVector<int> v(3);
+  v.push_back(1);
+  v.push_back(2);
+  v.push_back(3);
+  v.pop_front();  // removes 1, front_idx = 1
+  EXPECT_EQ(v.size(), 2);
+  EXPECT_EQ(v.at(0), 2);
+  EXPECT_EQ(v.at(1), 3);
+
+  // pop_back should remove 3
+  EXPECT_EQ(v.pop_back(), 3);
+  EXPECT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), 2);
+}
+
+// Test push_back wraps correctly after pop_front
+TEST(CircVectorCore, PushBackWrapsAfterPopFront) {
+  CircVector<int> v(3);
+  v.push_back(1);
+  v.push_back(2);
+  v.push_back(3);
+  v.pop_front();   // front_idx = 1
+  v.push_back(4);  // should wrap to index 0
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 2);
+  EXPECT_EQ(v.at(1), 3);
+  EXPECT_EQ(v.at(2), 4);
+}
+
+// Test push_front triggers resize when capacity full
+TEST(CircVectorCore, PushFrontResizesWhenFull) {
+  CircVector<int> v(2);
+  v.push_back(1);
+  v.push_back(2);   // capacity full
+  v.push_front(0);  // should resize to capacity >= 4
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 0);
+  EXPECT_EQ(v.at(1), 1);
+  EXPECT_EQ(v.at(2), 2);
+}
+
+// Test push_back triggers resize when capacity full
+TEST(CircVectorCore, PushBackResizesWhenFull) {
+  CircVector<int> v(2);
+  v.push_back(1);
+  v.push_back(2);  // capacity full
+  v.push_back(3);  // triggers resize
+  EXPECT_EQ(v.size(), 3);
+  EXPECT_EQ(v.at(0), 1);
+  EXPECT_EQ(v.at(1), 2);
+  EXPECT_EQ(v.at(2), 3);
+}
+
+TEST(CircVectorCore, PopBackNoWrapBugCaught) {
+  CircVector<int> v(3);
+
+  // Fill vector completely
+  v.push_back(1);  // index 0
+  v.push_back(2);  // index 1
+  v.push_back(3);  // index 2
+
+  // Shift front forward to force wrap-around
+  v.pop_front();   // removes 1, front_idx = 1
+  v.pop_front();   // removes 2, front_idx = 2
+  v.push_back(4);  // wraps around to index 0
+
+  // Now the underlying array is [4,_,3] with front_idx = 2
+  // pop_back should remove 4 (wrapped index)
+  EXPECT_EQ(v.pop_back(), 4);
+  EXPECT_EQ(v.size(), 1);
+  EXPECT_EQ(v.at(0), 3);
+
+  // pop_back again removes 3
+  EXPECT_EQ(v.pop_back(), 3);
+  EXPECT_EQ(v.size(), 0);
+  EXPECT_TRUE(v.empty());
+}
+
+// task 2_____________________________________________________________________
+TEST(CircVectorAugmented, CopyConstructorCopiesAllElements) {
+  CircVector<int> v;
+  for (int i = 0; i < 6; i++) v.push_back(i);
+  CircVector<int> cpy = v;  // copy constructor
+  EXPECT_EQ(cpy.size(), v.size());
+  for (int i = 0; i < v.size(); i++) {
+    EXPECT_EQ(cpy.at(i), v.at(i));
+  }
+}
+
+TEST(CircVectorAugmented, CopyConstructorEmpty) {
+  CircVector<int> v;
+  CircVector<int> cpy = v;
+  EXPECT_EQ(cpy.size(), 0);
+}
+
+TEST(CircVectorAugmented, AssignmentOperatorCopiesAllElements) {
+  CircVector<int> a;
+  for (int i = 0; i < 4; i++) a.push_back(i + 5);
+  CircVector<int> b;
+  b = a;
+  EXPECT_EQ(b.size(), a.size());
+  for (int i = 0; i < a.size(); i++) {
+    EXPECT_EQ(b.at(i), a.at(i));
+  }
+}
+
+TEST(CircVectorAugmented, AssignmentOperatorEmpty) {
+  CircVector<int> a;
+  CircVector<int> b;
+  b.push_back(42);
+  b = a;  // assign empty to non-empty
+  EXPECT_EQ(b.size(), 0);
+}
+
+TEST(CircVectorAugmented, AssignmentOperatorSelfAssign) {
+  CircVector<int> v;
+  for (int i = 0; i < 5; i++) v.push_back(i);
+  CircVector<int>& ref = v;
+  v = ref;
+  EXPECT_EQ(v.size(), 5);
+  EXPECT_EQ(v.at(2), 2);
+}
+
+TEST(CircVectorAugmented, ToStringFormatIsCorrect) {
+  CircVector<int> v;
+  for (int i = 1; i <= 3; i++) v.push_back(i);
+  EXPECT_EQ(v.to_string(), "[1, 2, 3]");
+}
+
+TEST(CircVectorAugmented, FindReturnsCorrectIndex) {
+  CircVector<int> v;
+  for (int i = 10; i <= 14; i++) v.push_back(i);
+  EXPECT_EQ(v.find(10), 0);
+  EXPECT_EQ(v.find(13), 3);
+  EXPECT_EQ(v.find(14), 4);
+}
+
+TEST(CircVectorAugmented, FindHandlesNotFound) {
+  CircVector<int> v;
+  for (int i = 0; i < 3; i++) v.push_back(i);
+  EXPECT_EQ(v.find(100), static_cast<size_t>(-1));
+}
+
+TEST(CircVectorAugmented, FindBoundsAreCorrect) {
+  CircVector<int> v;
+  v.push_back(10);
+  v.push_back(20);
+  EXPECT_EQ(v.find(10), 0);
+  EXPECT_EQ(v.find(20), 1);
+}
+
+// task 3_____________________________________________________________________
+
+TEST(CircVectorExtras, InsertAfterBasic) {
+  CircVector<int> v;
+  for (int i = 1; i <= 3; i++) v.push_back(i);  // [1,2,3]
+  v.insert_after(1, 99);                        // after index 1 -> [1,2,99,3]
+  EXPECT_EQ(v.to_string(), "[1, 2, 99, 3]");
+}
+
+TEST(CircVectorExtras, InsertAfterWrapAndResize) {
+  CircVector<int> v(3);
+  for (int i = 0; i < 3; i++) v.push_back(i);
+  v.pop_front();
+  v.push_back(3);  // causes wraparound
+  v.insert_after(1, 42);
+  EXPECT_TRUE(v.to_string().find("42") != string::npos);
+}
+
+TEST(CircVectorExtras, InsertAfterThrowsOnBadIndex) {
+  CircVector<int> v;
+  v.push_back(1);
+  EXPECT_THROW(v.insert_after(5, 10), std::out_of_range);
+}
+
+TEST(CircVectorExtras, RemoveEvensBasic) {
+  CircVector<int> v;
+  for (int i = 0; i < 5; i++) v.push_back(i);  // [0,1,2,3,4]
+  v.remove_evens();                            // should leave [1,3]
+  EXPECT_EQ(v.to_string(), "[1, 3]");
+}
+
+TEST(CircVectorExtras, RemoveEvensEmptySafe) {
+  CircVector<int> v;
+  v.remove_evens();  // no crash, stays empty
+  EXPECT_EQ(v.to_string(), "[]");
+}
+
+TEST(CircVectorExtras, RemoveEvensEvenSize) {
+  CircVector<int> v;
+  for (int i = 1; i <= 4; i++) v.push_back(i);  // [1,2,3,4]
+  v.remove_evens();                             // remove 1 and 3 -> [2,4]
+  EXPECT_EQ(v.to_string(), "[2, 4]");
+}
+
+TEST(CircVectorExtras, InsertAfterZeroIndex) {
+  CircVector<int> v;
+  v.push_back(1);
+  v.push_back(2);
+  v.insert_after(0, 99);  // insert after index 0
+  EXPECT_EQ(v.to_string(), "[1, 99, 2]");
+  EXPECT_EQ(v.size(), 3);
+}
+
+TEST(CircVectorExtras, InsertAfterTriggersResize) {
+  CircVector<int> v(2);  // small capacity
+  v.push_back(1);
+  v.push_back(2);
+  // should trigger resize before inserting
+  v.insert_after(1, 3);
+  EXPECT_GE(v.get_capacity(), 3);
+  EXPECT_EQ(v.to_string(), "[1, 2, 3]");
+  EXPECT_EQ(v.size(), 3);
+}
+
+
+
+
+//circvector.h file__________________________________________________________________________________________________________________________________
+#pragma once
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+template <typename T>
+class CircVector {
+ private:
+  T *data;
+  size_t vec_size;
+  size_t capacity;
+  size_t front_idx;
+
+  void resize() {
+    size_t new_capacity = capacity * 2;
+    T *new_data = new T[new_capacity];
+
+    // Copy existing elements in order
+    for (size_t i = 0; i < vec_size; i++) {
+      new_data[i] = data[(front_idx + i) % capacity];
+    }
+
+    delete[] data;
+    data = new_data;
+    capacity = new_capacity;
+    front_idx = 0;
+  }
+
+ public:
+  CircVector() {
+    capacity = 10;
+    vec_size = 0;
+    front_idx = 0;
+    data = new T[capacity];
+  }
+
+  CircVector(size_t cap) {
+    if (cap == 0) cap = 1;
+    capacity = cap;
+    vec_size = 0;
+    front_idx = 0;
+    data = new T[capacity];
+  }
+
+  bool empty() const {
+    return vec_size == 0;
+  }
+  size_t size() const {
+    return vec_size;
+  }
+
+  void push_front(T elem) {
+    if (vec_size == capacity) resize();
+    front_idx = (front_idx == 0) ? capacity - 1 : front_idx - 1;
+    data[front_idx] = elem;
+    vec_size++;
+  }
+
+  void push_back(T elem) {
+    if (vec_size == capacity) resize();
+    size_t back_idx = (front_idx + vec_size) % capacity;
+    data[back_idx] = elem;
+    vec_size++;
+  }
+
+  T pop_front() {
+    if (empty()) {
+      throw std::runtime_error("Cannot pop_front from empty CircVector");
+    }
+    T value = data[front_idx];
+    front_idx = (front_idx + 1) % capacity;
+    vec_size--;
+    return value;
+  }
+
+  T pop_back() {
+    if (empty()) {
+      throw std::runtime_error("Cannot pop_back from empty CircVector");
+    }
+    size_t back_idx = (front_idx + vec_size - 1) % capacity;
+    T value = data[back_idx];
+    vec_size--;
+    return value;
+  }
+
+  void clear() {
+    vec_size = 0;
+    front_idx = 0;
+  }
+
+  ~CircVector() {
+    delete[] data;
+  }
+
+  T &at(size_t index) const {
+    if (index >= vec_size) throw std::out_of_range("index out of range");
+    return data[(front_idx + index) % capacity];
+  }
+
+  /**
+   * Copy constructor. Creates a deep copy of the given `CircVector`.
+   *
+   * Must run in O(N) time.
+   */
+  CircVector(const CircVector &other) {
+    capacity = other.capacity;
+    vec_size = other.vec_size;
+    front_idx = other.front_idx;
+    data = new T[capacity];
+    for (size_t i = 0; i < vec_size; i++) {
+      data[(front_idx + i) % capacity] =
+          other.data[(other.front_idx + i) % other.capacity];
+    }
+  }
+
+  /**
+   * Assignment operator. Sets the current `CircVector` to a deep copy of the
+   * given `CircVector`.
+   *
+   * Must run in O(N) time.
+   */
+  CircVector &operator=(const CircVector &other) {
+    if (this == &other) return *this;
+    delete[] data;
+    capacity = other.capacity;
+    vec_size = other.vec_size;
+    front_idx = other.front_idx;
+    data = new T[capacity];
+    for (size_t i = 0; i < vec_size; i++) {
+      data[(front_idx + i) % capacity] =
+          other.data[(other.front_idx + i) % other.capacity];
+    }
+    return *this;
+  }
+
+  /**
+   * Converts the `CircVector` to a string. Formatted like `[0, 1, 2, 3, 4]`
+   * (without the backticks -- hover the function name to see). Runs in O(N)
+   * time.
+   */
+  string to_string() const {
+    stringstream ss;
+    ss << "[";
+    for (size_t i = 0; i < vec_size; i++) {
+      ss << data[(front_idx + i) % capacity];
+      if (i < vec_size - 1) ss << ", ";
+    }
+    ss << "]";
+    return ss.str();
+  }
+
+  /**
+   * Searches the `CircVector` for the first matching element, and returns its
+   * index in the `CircVector`. If no match is found, returns "-1".
+   */
+  size_t find(const T &target) {
+    for (size_t i = 0; i < vec_size; i++) {
+      if (data[(front_idx + i) % capacity] == target) return i;
+    }
+    return static_cast<size_t>(-1);
+  }
+
+  /**
+   * Remove the element at the specified index in this list.
+   *
+   * If the index is invalid, throws `out_of_range`.
+   */
+  void remove_at(size_t index) {
+    if (index >= vec_size) throw std::out_of_range("index out of range");
+    for (size_t i = index; i < vec_size - 1; i++) {
+      data[(front_idx + i) % capacity] = data[(front_idx + i + 1) % capacity];
+    }
+    vec_size--;
+  }
+
+  /**
+   * Inserts the given `T` as a new element in the `CircVector` after
+   * the given index. If the index is invalid, throws `out_of_range`.
+   */
+  void insert_after(size_t index, T elem) {
+    if (index >= vec_size) throw std::out_of_range("index out of range");
+
+    // Resize if needed before insertion
+    if (vec_size == capacity) resize();
+
+    // Compute the true position in the circular buffer
+    size_t insert_pos = (front_idx + index + 1) % capacity;
+
+    // Shift all elements after insert_pos one step to the right
+    // We’ll do it in logical order to avoid overwriting elements
+    for (size_t i = vec_size; i > index + 1; --i) {
+      size_t from = (front_idx + i - 1) % capacity;
+      size_t to = (front_idx + i) % capacity;
+      data[to] = data[from];
+    }
+
+    // Insert the element
+    data[insert_pos] = elem;
+    vec_size++;
+  }
+
+  /**
+   * Remove every element that is currently in an
+   * even-numbered position on the `CircVector`
+   * (not the data array).
+   *
+   * Must run in O(N). Mustn't reallocate the array.
+   *
+   * For example, if a list was `[3, 9, 7, 6, 8]`, remove_evens
+   * would change the list to `[9, 6]`, since we remove the
+   * values in positions 0, 2, and 4 (the even-numbered indices)
+   * from the list.
+   */
+  void remove_evens() {
+    if (empty()) return;
+
+    size_t new_size = 0;
+
+    // Only keep elements at odd indices
+    for (size_t i = 0; i < vec_size; ++i) {
+      if (i % 2 == 1) {
+        data[(front_idx + new_size) % capacity] =
+            data[(front_idx + i) % capacity];
+        new_size++;
+      }
+    }
+
+    vec_size = new_size;
+  }
+
+  /**
+   * Returns a pointer to the underlying memory managed by the `CircVec`.
+   * For autograder testing purposes only. Do not change.
+   */
+  T *get_data() const {
+    return this->data;
+  }
+
+  /**
+   * Returns the capacity of the underlying memory managed by the `CircVec`. For
+   * autograder testing purposes only. Do not change.
+   */
+  size_t get_capacity() const {
+    return this->capacity;
+  }
+};
+
+
+
+
+linkedlists_tests.cpp file_________________________________________________________________________________________________________________
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include "linkedlist.h"
+
+using namespace std;
+using namespace testing;
+
+// TEST(FakeTest, PleaseDeleteOnceYouWriteSome) {
+//   // If no tests exist, GoogleTest fails to compile with a fairly confusing
+//   // message. We have this empty test that does nothing to allow an empty
+//   // autograder submission to compile and regularly fail. Once you write your
+//   // own tests for the project, you can delete this one.
+//   EXPECT_THAT(1, Eq(1));
+// }
+
+TEST(LinkedListCore, EmptySizeConstructor) {
+  LinkedList<int> llist;
+  // will check if true when list is empty
+  EXPECT_TRUE(llist.empty());
+  // will check if equal the size
+  EXPECT_EQ(llist.size(), 0);
+}
+
+TEST(LinkedListCore, PushFrontBackSizeChanges) {
+  LinkedList<int> llist;
+  // will push to front the 5
+  llist.push_front(5);
+  // will check if it is false the empty list
+  EXPECT_FALSE(llist.empty());
+  // will check if equal the llist size
+  EXPECT_EQ(llist.size(), 1);
+  // will check if equal the llist at [0]
+  EXPECT_EQ(llist.at(0), 5);
+
+  // will push back 10
+  llist.push_back(10);
+  // will check if equal the size
+  EXPECT_EQ(llist.size(), 2);
+  // will check if equal at [1]
+  EXPECT_EQ(llist.at(1), 10);
+}
+
+TEST(LinkedListCore, PopFrontBackUpdateSize) {
+  LinkedList<int> llist;
+  // will push back at [1]
+  llist.push_back(1);
+  // will push back at [2]
+  llist.push_back(2);
+  // will push to front
+  llist.pop_front();
+  // will check if equal the llist size
+  EXPECT_EQ(llist.size(), 1);
+  // will check if equal the llist at [0]
+  EXPECT_EQ(llist.at(0), 2);
+
+  // will pop back to llist
+  llist.pop_back();
+  // will check if equal the llist size
+  EXPECT_EQ(llist.size(), 0);
+  // will check if true the llist is empty
+  EXPECT_TRUE(llist.empty());
+}
+
+TEST(LinkedListCore, ClearRemovesAll) {
+  LinkedList<int> llist;
+  // will loop 5 times
+  for (int i = 0; i < 5; i++) {
+    // will push back i of llist
+    llist.push_back(i);
+  }
+  // will clear the llist
+  llist.clear();
+  // will check if true the llist empty
+  EXPECT_TRUE(llist.empty());
+  // will check if equal the llist size
+  EXPECT_EQ(llist.size(), 0);
+}
+
+TEST(LinkedListCore, AtThrowOnBadIndex) {
+  LinkedList<int> llist;
+  llist.push_back(5);
+
+  // Test negative index
+  EXPECT_THROW(llist.at(-1), std::out_of_range);
+
+  // Test index >= size
+  EXPECT_THROW(llist.at(1), std::out_of_range);
+  EXPECT_THROW(llist.at(100), std::out_of_range);
+
+  // Test valid index does NOT throw
+  EXPECT_NO_THROW(llist.at(0));
+  EXPECT_EQ(llist.at(0), 5);
+}
+
+TEST(LinkedListCore, PopEmptyThrows) {
+  LinkedList<int> llist;
+  EXPECT_THROW(llist.pop_back(), std::exception);
+  EXPECT_THROW(llist.pop_front(), std::exception);
+  EXPECT_EQ(llist.size(), 0);
+}
+
+TEST(LinkedListCore, PushFrontDoesNotOverwrite) {
+  LinkedList<int> llist;
+  llist.push_back(1);
+  llist.push_back(2);
+  llist.push_front(0);
+  EXPECT_EQ(llist.size(), 3);
+  EXPECT_EQ(llist.at(0), 0);
+  EXPECT_EQ(llist.at(1), 1);
+  EXPECT_EQ(llist.at(2), 2);
+}
+
+TEST(LinkedListCore, PopUpdatesSize) {
+  LinkedList<int> llist;
+  llist.push_back(1);
+  llist.push_back(2);
+  llist.push_back(3);
+
+  llist.pop_back();
+  EXPECT_EQ(llist.size(), 2);
+  EXPECT_EQ(llist.at(1), 2);
+
+  llist.pop_front();
+  EXPECT_EQ(llist.size(), 1);
+  EXPECT_EQ(llist.at(0), 2);
+}
+
+TEST(LinkedListCore, ClearResetsSizeAndAllowsReuse) {
+  LinkedList<int> llist;
+  llist.push_back(1);
+  llist.push_back(2);
+  llist.clear();
+  EXPECT_TRUE(llist.empty());
+  EXPECT_EQ(llist.size(), 0);
+
+  llist.push_back(5);
+  EXPECT_EQ(llist.size(), 1);
+  EXPECT_EQ(llist.at(0), 5);
+}
+
+TEST(LinkedListCore, ConstructorInitializesCorrectly) {
+  LinkedList<int> llist;
+  EXPECT_TRUE(llist.empty());
+  EXPECT_EQ(llist.size(), 0);
+}
+
+// task
+// 2_________________________________________________________________________
+TEST(LinkedListAugmented, CopyConstructorCopiesAllElements) {
+  LinkedList<int> a;
+  for (int i = 0; i < 5; i++) a.push_back(i);
+  LinkedList<int> b = a;  // copy constructor
+
+  EXPECT_EQ(b.size(), 5);
+  for (int i = 0; i < 5; i++) {
+    EXPECT_EQ(b.at(i), i);
+  }
+}
+
+TEST(LinkedListAugmented, CopyConstructorEmptyList) {
+  LinkedList<int> a;
+  LinkedList<int> b = a;
+  EXPECT_EQ(b.size(), 0);
+  EXPECT_THROW(b.at(0), std::out_of_range);
+}
+
+TEST(LinkedListAugmented, AssignmentOperatorCopiesAllElements) {
+  LinkedList<int> a;
+  for (int i = 0; i < 4; i++) a.push_back(i + 10);
+
+  LinkedList<int> b;
+  b = a;
+  EXPECT_EQ(b.size(), 4);
+  for (int i = 0; i < 4; i++) {
+    EXPECT_EQ(b.at(i), a.at(i));
+  }
+}
+
+TEST(LinkedListAugmented, AssignmentOperatorEmptyList) {
+  LinkedList<int> a;
+  LinkedList<int> b;
+  b.push_back(1);
+  b = a;  // assign empty to non-empty
+  EXPECT_EQ(b.size(), 0);
+}
+
+TEST(LinkedListAugmented, AssignmentOperatorSelfAssign) {
+  LinkedList<int> a;
+  for (int i = 0; i < 3; i++) a.push_back(i);
+  LinkedList<int>& ref = a;
+  a = ref;  // self-assignment
+  EXPECT_EQ(a.size(), 3);
+  EXPECT_EQ(a.at(0), 0);
+  EXPECT_EQ(a.at(1), 1);
+  EXPECT_EQ(a.at(2), 2);
+}
+
+TEST(LinkedListAugmented, ToStringFormatIsCorrect) {
+  LinkedList<int> a;
+  for (int i = 1; i <= 3; i++) a.push_back(i);
+  EXPECT_EQ(a.to_string(), "[1, 2, 3]");
+}
+
+TEST(LinkedListAugmented, FindReturnsCorrectIndex) {
+  LinkedList<int> a;
+  for (int i = 5; i < 10; i++) a.push_back(i);
+  EXPECT_EQ(a.find(5), 0);
+  EXPECT_EQ(a.find(8), 3);
+  EXPECT_EQ(a.find(9), 4);
+}
+
+TEST(LinkedListAugmented, FindHandlesNotFound) {
+  LinkedList<int> a;
+  for (int i = 0; i < 3; i++) a.push_back(i);
+  EXPECT_EQ(a.find(42), static_cast<size_t>(-1));
+}
+
+TEST(LinkedListAugmented, FindBoundsAreCorrect) {
+  LinkedList<int> a;
+  a.push_back(10);
+  a.push_back(20);
+  EXPECT_EQ(a.find(10), 0);
+  EXPECT_EQ(a.find(20), 1);
+}
+
+// task 3____________________________________________________________________
+
+TEST(LinkedListExtras, InsertAfterBasic) {
+  LinkedList<int> lst;
+  lst.push_back(1);
+  lst.push_back(2);
+  lst.push_back(3);
+  lst.insert_after(1, 99);  // insert after index 1 (after 2)
+  EXPECT_EQ(lst.to_string(), "[1, 2, 99, 3]");
+}
+
+TEST(LinkedListExtras, InsertAfterBadIndexThrows) {
+  LinkedList<int> lst;
+  lst.push_back(1);
+  EXPECT_THROW(lst.insert_after(5, 10), std::out_of_range);
+}
+
+TEST(LinkedListExtras, RemoveEvensBasic) {
+  LinkedList<int> lst;
+  for (int i = 0; i < 5; ++i) lst.push_back(i);
+  lst.remove_evens();
+  EXPECT_EQ(lst.to_string(), "[1, 3]");
+}
+
+TEST(LinkedListExtras, RemoveEvensEmptySafe) {
+  LinkedList<int> lst;
+  lst.remove_evens();  // should not crash
+  EXPECT_EQ(lst.to_string(), "[]");
+}
+
+TEST(LinkedListExtras, RemoveEvensEvenSized) {
+  LinkedList<int> lst;
+  for (int i = 1; i <= 4; ++i) lst.push_back(i);  // [1,2,3,4]
+  lst.remove_evens();                             // remove 1 and 3
+  EXPECT_EQ(lst.to_string(), "[2, 4]");
+}
+
+TEST(LinkedListExtras, InsertAfterZeroIndex) {
+  LinkedList<int> list;
+  list.push_back(10);
+  list.push_back(20);
+  list.insert_after(0, 15);  // Insert after index 0
+  // Expect: [10, 15, 20]
+  EXPECT_EQ(list.to_string(), "[10, 15, 20]");
+  EXPECT_EQ(list.size(), 3);
+}
+
+
+
+//linkedlist.h file_____________________________________________________________________________________________________________________________________
+#pragma once
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
+using namespace std;
+
+template <typename T>
+class LinkedList {
+ private:
+  class Node {
+   public:
+    T data;
+    Node *next;
+
+    Node(T data) {
+      this->data = data;
+      this->next = nullptr;
+    }
+
+    Node(T data, Node *next) {
+      this->data = data;
+      this->next = next;
+    }
+  };
+
+  size_t list_size;
+  Node *list_front;
+
+ public:
+  /**
+   * Default constructor. Creates an empty `LinkedList`.
+   */
+  LinkedList() {
+    // will set the front to null
+    list_front = nullptr;
+    // will set the size to 0;
+    list_size = 0;
+  }
+
+  /**
+   * Returns whether the `LinkedList` is empty (i.e. whether its
+   * size is 0).
+   */
+  bool empty() const {
+    // will return the list size to 0
+    return list_size == 0;
+  }
+
+  /**
+   * Returns the number of elements in the `LinkedList`.
+   */
+  size_t size() const {
+    // will return the list size
+    return list_size;
+  }
+
+  /**
+   * Adds the given `T` to the front of the `LinkedList`.
+   */
+  void push_front(T data) {
+    // will create a new node using the new operator
+    Node *theNewNode = new Node(data, list_front);
+    // will set the front to the new Node
+    list_front = theNewNode;
+    // will increment the size
+    list_size++;
+  }
+
+  /**
+   * Adds the given `T` to the back of the `LinkedList`.
+   */
+  void push_back(T data) {
+    // will create the new node using the new operator
+    Node *theNewNode = new Node(data);
+    // checks if list is empty
+    if (empty()) {
+      list_front = theNewNode;
+    } else {
+      // will create new node to current
+      Node *current = list_front;
+      // will check if the next is null
+      while (current->next != nullptr) {
+        current = current->next;
+      }
+      // will set next to the new mode
+      current->next = theNewNode;
+    }
+    // will increment the size
+    list_size++;
+  }
+
+  /**
+   * Removes the element at the front of the `LinkedList`.
+   *
+   * If the `LinkedList` is empty, throws a `runtime_error`.
+   */
+  T pop_front() {
+    if (empty())
+      throw std::runtime_error("Cannot pop_front from empty LinkedList");
+    Node *temp = list_front;
+    T value = temp->data;
+    list_front = list_front->next;
+    delete temp;
+    list_size--;
+    return value;
+  }
+
+  /**
+   * Removes the element at the back of the `LinkedList`.
+   *
+   * If the `LinkedList` is empty, throws a `runtime_error`.
+   */
+  T pop_back() {
+    if (empty())
+      throw std::runtime_error("Cannot pop_back from empty LinkedList");
+
+    if (list_front->next == nullptr) {
+      T value = list_front->data;
+      delete list_front;
+      list_front = nullptr;
+      list_size = 0;
+      return value;
+    }
+
+    Node *current = list_front;
+    while (current->next->next != nullptr) {
+      current = current->next;
+    }
+
+    T value = current->next->data;
+    delete current->next;
+    current->next = nullptr;
+    list_size--;
+    return value;
+  }
+
+  /**
+   * Empties the `LinkedList`, releasing all allocated memory, and resetting
+   * member variables appropriately.
+   */
+  void clear() {
+    // will create a new node called current
+    Node *current = list_front;
+    while (current != nullptr) {
+      Node *theNextNode = current->next;
+      delete current;
+      current = theNextNode;
+    }
+    list_front = nullptr;
+    list_size = 0;
+  }
+
+  /**
+   * Destructor. Clears all allocated memory.
+   */
+  ~LinkedList() {
+    // will call the clear function
+    clear();
+  }
+
+  /**
+   * Returns the element at the given index in the `LinkedList`.
+   *
+   * If the index is invalid, throws `out_of_range`.
+   */
+  T &at(size_t index) const {
+    if (index >= list_size) {
+      throw std::out_of_range("index out of bounds");
+    }
+    Node *current = list_front;
+    for (size_t i = 0; i < index; i++) current = current->next;
+    return current->data;
+  }
+
+  /**
+   * Copy constructor. Creates a deep copy of the given `LinkedList`.
+   *
+   * Must run in O(N) time.
+   */
+  LinkedList(const LinkedList &other) {
+    list_front = nullptr;
+    list_size = 0;
+    if (other.list_front == nullptr) return;
+
+    // Copy first node
+    list_front = new Node(other.list_front->data);
+    Node *curr_new = list_front;
+    Node *curr_old = other.list_front->next;
+    list_size = 1;
+
+    // Copy the rest in one pass
+    while (curr_old != nullptr) {
+      curr_new->next = new Node(curr_old->data);
+      curr_new = curr_new->next;
+      curr_old = curr_old->next;
+      list_size++;
+    }
+  }
+
+  /**
+   * Assignment operator. Sets the current `LinkedList` to a deep copy of the
+   * given `LinkedList`.
+   *
+   * Must run in O(N) time.
+   */
+  LinkedList &operator=(const LinkedList &other) {
+    if (this == &other) return *this;  // self-assignment guard
+    clear();
+
+    if (other.list_front == nullptr) return *this;
+
+    // Copy first node
+    list_front = new Node(other.list_front->data);
+    Node *curr_new = list_front;
+    Node *curr_old = other.list_front->next;
+    list_size = 1;
+
+    // Copy the rest
+    while (curr_old != nullptr) {
+      curr_new->next = new Node(curr_old->data);
+      curr_new = curr_new->next;
+      curr_old = curr_old->next;
+      list_size++;
+    }
+
+    return *this;
+  }
+
+  /**
+   * Converts the `LinkedList` to a string. Formatted like `[0, 1, 2, 3, 4]`
+   * (without the backticks -- hover the function name to see). Runs in O(N)
+   * time.
+   */
+  string to_string() const {
+    stringstream ss;
+    ss << "[";
+    Node *current = list_front;
+    while (current != nullptr) {
+      ss << current->data;
+      if (current->next != nullptr) ss << ", ";
+      current = current->next;
+    }
+    ss << "]";
+    return ss.str();
+  }
+
+  /**
+   * Searches the `LinkedList` for the first matching element, and returns its
+   * index. If no match is found, returns "-1".
+   */
+  size_t find(const T &data) {
+    Node *current = list_front;
+    size_t index = 0;
+    while (current != nullptr) {
+      if (current->data == data) return index;
+      current = current->next;
+      index++;
+    }
+    return static_cast<size_t>(-1);
+  }
+
+  /**
+   * Remove the element at the specified index in this list.
+   *
+   * If the index is invalid, throws `out_of_range`.
+   */
+  void remove_at(size_t index) {
+    if (index >= list_size) throw std::out_of_range("index out of range");
+
+    if (index == 0) {
+      pop_front();
+      return;
+    }
+
+    Node *prev = list_front;
+    for (size_t i = 0; i < index - 1; i++) {
+      prev = prev->next;
+    }
+
+    Node *target = prev->next;
+    prev->next = target->next;
+    delete target;
+    list_size--;
+  }
+
+  /**
+   * Inserts the given `T` as a new element in the `LinkedList` after
+   * the given index. If the index is invalid, throws `out_of_range`.
+   */
+  void insert_after(size_t index, T data) {
+    // Invalid index check
+    if (index >= list_size) throw std::out_of_range("index out of range");
+
+    Node *current = list_front;
+    for (size_t i = 0; i < index; ++i) {
+      current = current->next;
+    }
+
+    // Create a new node that points to current->next
+    Node *newNode = new Node(data, current->next);
+    current->next = newNode;
+    list_size++;
+  }
+
+  /**
+   * Remove every element that is currently in an
+   * even-numbered position on the list.
+   *
+   * Must run in O(N).
+   *
+   * For example, if a list was `[3, 9, 7, 6, 8]`, remove_evens
+   * would change the list to `[9, 6]`, since we remove the
+   * values in positions 0, 2, and 4 (the even-numbered indices)
+   * from the list.
+   */
+  void remove_evens() {
+    // If list is empty, just return
+    if (empty()) return;
+
+    Node *current = list_front;
+    Node *prev = nullptr;
+    size_t index = 0;
+
+    while (current != nullptr) {
+      Node *nextNode = current->next;
+      if (index % 2 == 0) {  // remove even index nodes
+        if (prev == nullptr) {
+          // removing front node
+          list_front = nextNode;
+        } else {
+          prev->next = nextNode;
+        }
+        delete current;
+        list_size--;
+      } else {
+        // keep odd index nodes
+        prev = current;
+      }
+      current = nextNode;
+      index++;
+    }
+  }
+
+  /**
+   * Returns a pointer to the node at the front of the `LinkedList`. For
+   * autograder testing purposes only.
+   */
+  void *front() const {
+    return this->list_front;
+  }
+};
