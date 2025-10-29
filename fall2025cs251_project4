@@ -1,0 +1,1206 @@
+/*
+INCLUDES other files, test file is below
+Header: Akio Pancho, 10/29/25, cs251, 12pm class, lab:tuesday 12pm
+Description: Project 4 is about making a binary search tree map(BSTMap).
+The BSTMap will store pairs of keys and values so you can quickly find,
+add, or remove items. A lot of helper functions were created for tasks
+like inserting items, checking if a key exists, getting a value, and
+even erasing items without leaks. Other aspects like handling special
+cases like removing nodes with no children, one child, two children, or
+copying/comparing trees were also done. Also, we created google bug tests.
+*/
+
+#pragma once
+
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
+
+using namespace std;
+
+template <typename KeyT, typename ValT>
+class BSTMap {
+ private:
+  struct BSTNode {
+    const KeyT key;  // This member should never change after initialization!
+    ValT value;
+    BSTNode* parent;
+    BSTNode* left;
+    BSTNode* right;
+
+    // This is fancy constructor syntax
+    // Don't worry too much about it -- it's just necesssary for the const
+    // member.
+    BSTNode(KeyT key, ValT value, BSTNode* parent)
+        : key(key),
+          value(value),
+          parent(parent),
+          left(nullptr),
+          right(nullptr) {
+    }
+  };
+
+  BSTNode* root;
+  size_t sz;
+
+  // Utility pointer for begin and next.
+  BSTNode* curr;
+
+  //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+  // TODO_STUDENT: add private helper function definitions here
+
+  // will use Recursive insert helper
+  bool insertHelperFunction(BSTNode*& node, BSTNode* parent, KeyT key,
+                            ValT value) {
+    // will check if node is valid or not
+    if (!node) {
+      // will create the BSTNode type using the constructor above
+      node = new BSTNode(key, value, parent);
+      return true;
+    }
+    // will see if key is less than key
+    if (key < node->key) {
+      return insertHelperFunction(node->left, node, key, value);
+    }
+    // will see if key is greater
+    if (key > node->key) {
+      return insertHelperFunction(node->right, node, key, value);
+    }
+    // will return key that already exists
+    return false;
+  }
+
+  // will be for Recursive contains helper with BSTNode* and keey
+  bool containsHelperFunction(BSTNode* node, const KeyT& key) const {
+    // will see is the node inside argument is even valid or not
+    if (!node) {
+      return false;
+    }
+    // will check is key in argument is equal to the key of node
+    if (key == node->key) {
+      return true;
+    }
+    // will check if key is less than key of node
+    if (key < node->key) {
+      return containsHelperFunction(node->left, key);
+    }
+    // will use right side in argument
+    return containsHelperFunction(node->right, key);
+  }
+
+  // will delete all nodes using recursion
+  void deleteAllHelperFunction(BSTNode* node) {
+    // will check if node is invalid
+    if (!node) {
+      return;
+    }
+    // will use deleteAll function for left side
+    deleteAllHelperFunction(node->left);
+    // will use function for right side
+    deleteAllHelperFunction(node->right);
+    // will use delete operator to avoid leak
+    delete node;
+  }
+
+  // will Recursive to_string helper (in-order) and ostringstream&
+  void toStringHelperFunction(BSTNode* node, ostringstream& inputString) const {
+    if (!node) {
+      return;
+    }
+    // will use recursion and use left side and the inputString
+    toStringHelperFunction(node->left, inputString);
+    inputString << node->key << ": " << node->value << endl;
+    // will use recursion here too
+    toStringHelperFunction(node->right, inputString);
+  }
+
+  // will be for Recursive at helper
+  ValT& atHelperFunction(BSTNode* node, const KeyT& key) const {
+    if (!node) {
+      throw out_of_range("Key not found");
+    }
+    // will see if key is equal to key
+    if (key == node->key) {
+      return node->value;
+    }
+    // will see if key is less than key
+    if (key < node->key) {
+      return atHelperFunction(node->left, key);
+    }
+    // will return using right side and the key
+    return atHelperFunction(node->right, key);
+  }
+
+  // will be helper for erase() with BSTNode pointer, key and removed value
+  BSTNode* eraseHelperFunction(BSTNode* node, const KeyT& key,
+                               ValT& removedVal) {
+    // will throw out of range error if no key, this was used project 3
+    if (!node) {
+      throw out_of_range("Key is not found");
+    }
+
+    // will check key and left and right keys using recursively
+    if (key < node->key) {
+      node->left = eraseHelperFunction(node->left, key, removedVal);
+      if (node->left) {
+        node->left->parent = node;
+      }
+    } else if (key > node->key) {
+      node->right = eraseHelperFunction(node->right, key, removedVal);
+      if (node->right) {
+        node->right->parent = node;
+      }
+    } else {
+      removedVal = node->value;
+
+      // will be for Case 1 with no children, and avoid leak
+      if (!node->left && !node->right) {
+        // will delete node
+        delete node;
+        return nullptr;
+      }
+
+      // will be for Case 2 where it is one child
+      if (!node->left) {
+        BSTNode* temp = node->right;
+        temp->parent = node->parent;
+        // will delete node to avoid leak
+        delete node;
+        return temp;
+      }
+      if (!node->right) {
+        BSTNode* temp = node->left;
+        temp->parent = node->parent;
+        // will delete node to avoid leaks
+        delete node;
+        return temp;
+      }
+
+      // will Case 3, two children, finds successor left-most in right sub-tree
+      BSTNode* succParent = node;
+      BSTNode* nodeAfter = node->right;
+      while (nodeAfter->left) {
+        succParent = nodeAfter;
+        nodeAfter = nodeAfter->left;
+      }
+
+      // will Remove the successor(succParent) from its parent
+      if (succParent->left == nodeAfter) {
+        succParent->left = nodeAfter->right;
+        if (nodeAfter->right) {
+          nodeAfter->right->parent = succParent;
+        }
+        // will be for anything else
+      } else {
+        succParent->right = nodeAfter->right;
+        if (nodeAfter->right) {
+          nodeAfter->right->parent = succParent;
+        }
+      }
+
+      // will Replace node with successor (succ keeps its key)
+      nodeAfter->left = node->left;
+      if (nodeAfter->left) {
+        nodeAfter->left->parent = nodeAfter;
+      }
+      // will set the successor(After) with right
+      nodeAfter->right = node->right;
+      if (nodeAfter->right) {
+        nodeAfter->right->parent = nodeAfter;
+      }
+      // will set parent of succ equal to parent of node
+      nodeAfter->parent = node->parent;
+
+      // will delete the node to avoid leak
+      delete node;
+      return nodeAfter;
+    }
+
+    return node;
+  }
+
+  // will be for Recursive copy helper with use of BSTNode* pointer
+  BSTNode* copyTreeHelperFunction(BSTNode* node, BSTNode* parent) {
+    if (!node) {
+      return nullptr;
+    }
+    // will give space for the pointer that will point left/right and no leak
+    BSTNode* newNode = new BSTNode(node->key, node->value, parent);
+    // will set left and right using the tree helper function
+    newNode->left = copyTreeHelperFunction(node->left, newNode);
+    newNode->right = copyTreeHelperFunction(node->right, newNode);
+    return newNode;
+  }
+
+  //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+ public:
+  /**
+   * Creates an empty `BSTMap`. Runs in O(1).
+   */
+  BSTMap() {
+    // TODO_STUDENT
+
+    // will set root pointer to nullptr, which means the tree is empty
+    root = nullptr;
+
+    // will make the size of our map starts at 0, since it's empty.
+    sz = 0;
+
+    // will set curr pointer to nullptr to show its not currently active
+    curr = nullptr;
+  }
+
+  /**
+   * Checks if the `BSTMap` is empty. Runs in O(1).
+   */
+  bool empty() const {
+    // TODO_STUDENT
+
+    // will return sz as 0, sz stands for size
+    return sz == 0;
+  }
+
+  /**
+   * Returns the number of mappings in the `BSTMap`. Runs in O(1).
+   */
+  size_t size() const {
+    // TODO_STUDENT
+
+    // will return the variable sz which stands for size
+    return sz;
+  }
+
+  /**
+   * Adds the mapping `{key -> value}` to the `BSTMap`. If the key already
+   * exists, does not update the mapping (like the C++ STL map).
+   *
+   * Uses the key to determine the location in the underlying BST. Creates
+   * exactly one new node.
+   *
+   * Runs in O(H), where H is the height of the tree.
+   */
+  void insert(KeyT key, ValT value) {
+    // TODO_STUDENT
+    // will check using insertHelperFunction and than it will increment size
+    if (insertHelperFunction(root, nullptr, key, value)) {
+      sz++;
+    }
+  }
+
+  /**
+   * Return a reference to the value stored for `key` in the map.
+   *
+   * If key is not present in the map, throw `out_of_range` exception.
+   *
+   * Runs in O(H), where H is the height of the tree.
+   */
+  ValT& at(const KeyT& key) const {
+    // TODO_STUDENT
+
+    // will return using the helperfunction
+    return atHelperFunction(root, key);
+    // return this->root->value;
+  }
+
+  /**
+   * Returns `true` if the key is present in the map, and false otherwise.
+   *
+   * Runs in O(H), where H is the height of the tree.
+   */
+  bool contains(const KeyT& key) const {
+    // TODO_STUDENT
+    // will return using the helper function that I created above
+    return containsHelperFunction(root, key);
+    // return false;
+  }
+
+  /**
+   * Empties the `BSTMap`, freeing all memory it controls.
+   *
+   * Runs in O(N), where N is the number of mappings.
+   */
+  void clear() {
+    // TODO_STUDENT
+
+    // will delete using the helper function
+    deleteAllHelperFunction(root);
+    // will set the variables to nullptr/ 0
+    root = nullptr;
+    sz = 0;
+    curr = nullptr;
+  }
+
+  /**
+   * Destructor, cleans up the `BSTMap`.
+   *
+   * Runs in O(N), where N is the number of mappings.
+   */
+  ~BSTMap() {
+    // TODO_STUDENT
+    // will use the clear function
+    clear();
+  }
+
+  /**
+   * Converts the `BSTMap` to a string representation, with the values
+   * in-order by key.
+   *
+   * Example:
+   *
+   * ```c++
+   * BSTMap<string, int> names;
+   * names.insert("Gwen", 10);
+   * names.insert("Jen", 5);
+   * names.insert("Ben", 10);
+   * names.insert("Sven", 7);
+   * ```
+   *
+   * Calling `names.to_string()` would return the following **multi-line**
+   * string:
+   *
+   * ```text
+   * Ben: 10
+   * Gwen: 10
+   * Jen: 5
+   * Sven: 7
+   * ```
+   *
+   * Runs in O(N), where N is the number of mappings.
+   */
+  string to_string() const {
+    // TODO_STUDENT
+    // will create ostring stream variable to get the string and hlper function
+    ostringstream inputString;
+    toStringHelperFunction(root, inputString);
+    // return the string using str() function
+    return inputString.str();
+  }
+
+  /**
+   * Copy constructor.
+   *
+   * Copies the mappings from the provided `BSTMap`.
+   * The internal tree structure must be copied exactly.
+   *
+   * Runs in O(N), where N is the number of mappings in `other`.
+   */
+  BSTMap(const BSTMap& other) {
+    // TODO_STUDENT
+    // wll inialize the member variables to null/ 0
+    root = nullptr;
+    sz = other.sz;
+    curr = nullptr;
+
+    // will use the tree copier helper function
+    root = copyTreeHelperFunction(other.root, nullptr);
+  }
+
+  /**
+   * Assignment operator; `operator=`.
+   *
+   * Clears this tree, and copies the mappings from the provided `BSTMap`.
+   * The internal tree structure must be copied exactly.
+   *
+   * Runs in O(N + O), where N is the number of mappings in `this`, and O is
+   * the number of mappings in `other`.
+   */
+  BSTMap& operator=(const BSTMap& other) {
+    // TODO_STUDENT
+    // will check if this is not equal to the other in argument
+    if (this != &other) {
+      // will clear
+      clear();
+      // will set size in member variable
+      sz = other.sz;
+      // will use the helper funciton to copy
+      root = copyTreeHelperFunction(other.root, nullptr);
+    }
+    return *this;
+  }
+
+  // =========================================================================
+
+  // task 2 is below////////////////////////////////////////////////
+
+  /**
+   * Locates the smallest key in the BSTMap, and removes and returns its
+   * mapping. If the `BSTMap` is empty, throws a `runtime_error`.
+   *
+   * Creates no new nodes, and does not update the key or value of any
+   * existing nodes.
+   *
+   * Runs in O(H), where H is the height of the tree.
+   */
+  pair<KeyT, ValT> remove_min() {
+    // TODO_STUDENT
+    // will check if root is equal to null and throw the error, used in proj 3
+    if (root == nullptr) {
+      throw runtime_error("Cannot remove_min from the empty BST tree");
+    }
+
+    // creates the class variables parent and node
+    BSTNode* theParent = nullptr;
+    BSTNode* node = root;
+
+    // will find the leftmost node in smallest way
+    while (node->left != nullptr) {
+      theParent = node;
+      node = node->left;
+    }
+
+    // will save the key and value to return later
+    pair<KeyT, ValT> theResult(node->key, node->value);
+
+    // will be for if the node is root
+    if (theParent == nullptr) {
+      // will be if it could be nullptr
+      root = root->right;
+      if (root != nullptr) {
+        root->parent = nullptr;
+      }
+    } else {
+      // will be for node->right may be nullptr
+      theParent->left = node->right;
+      if (node->right != nullptr) {
+        node->right->parent = theParent;
+      }
+    }
+
+    delete node;
+    // will decrement the size
+    sz = sz - 1;
+    // will return theResult which is a map
+    return theResult;
+  }
+
+  /**
+   * Checks if the contents of `this` and `other` are equivalent.
+   *
+   * Two `BSTMap` objects are equivalent if they contain the same
+   * mappings from key to value. To be equivalent, the two `BSTMap`
+   * objects need not have the same internal tree structure.
+   *
+   *
+   * Two different approaches could be used here.
+   *
+   * Approach #1:
+   * Runs in worst-case O(N) time, using worst-case O(N) heap space,
+   * where N is the maximum number of nodes in either of the `BSTMap`
+   * objects. Since you cannot include other C++ classes, the extra
+   * space in this approach would have to be used with arrays or
+   * with `string` objects.
+   *
+   * Approach #2:
+   * Runs in worst-case O(N*H) time, using worst-case O(1) space on
+   * the heap, where N is the maximum number of nodes in either of
+   * the `BSTMap` objects and H is the largest height between the two
+   * `BSTMap` objects.
+   *
+   */
+  bool operator==(const BSTMap& other) const {
+    // TODO_STUDENT
+    // will check if this is equal to the address of other
+    if (this == &other) {
+      return true;
+    }
+    // will check if the size member variable is not equal to other.size
+    if (sz != other.sz) {
+      return false;
+    }
+
+    // will use in-order (left,node,right), copies for begin() and next()
+    BSTMap<KeyT, ValT> copyA = *this;
+    BSTMap<KeyT, ValT> copyB = other;
+
+    copyA.begin();
+    copyB.begin();
+
+    // will create variables from KeyT and ValT
+    KeyT keyA;
+    KeyT keyB;
+    ValT valA;
+    ValT valB;
+
+    // will move through both the trees together
+    // said in project manual we can use next()
+    bool moreA = copyA.next(keyA, valA);
+    bool moreB = copyB.next(keyB, valB);
+
+    // will create codition while moreA and moreB are true
+    while (moreA && moreB) {
+      // will go if keyA!=keyB or if valA!=valB
+      if (keyA != keyB || valA != valB) {
+        return false;
+      }
+
+      // will set moreA and moreB using next()
+      // said in project manual that we can use next()
+      moreA = copyA.next(keyA, valA);
+      moreB = copyB.next(keyB, valB);
+    }
+
+    // will make both end at the same time
+    return moreA == moreB;
+  }
+
+  /**
+   * Resets internal state for an iterative inorder traversal.
+   *
+   * See `next` for usage details. Modifies nothing except for `curr`.
+   *
+   * O(H), where H is the maximum height of the tree.
+   */
+  void begin() {
+    // TODO_STUDENT
+    curr = root;
+
+    // will be for empty tree
+    if (curr == nullptr) {
+      return;
+    }
+
+    // willll go left until we reach the smallest node
+    while (curr->left != nullptr) {
+      curr = curr->left;
+    }
+  }
+
+  /**
+   * Uses the internal state to return the next in-order key and value
+   * by reference, and advances the internal state. Returns `true` if the
+   * reference parameters were set, and `false` otherwise.
+   *
+   * Example usage:
+   *
+   * ```c++
+   * BSTMap<string, int> bst;
+   * bst.begin();
+   * string key;
+   * int value;
+   * while (bst.next(key, val)) {
+   *   cout << key << ": " << val << endl;
+   * }
+   * ```
+   *
+   * Modifies nothing except for `curr`.
+   *
+   * Runs in worst-case O(H) where H is the height of the tree.
+   */
+  bool next(KeyT& key, ValT& val) {
+    // TODO_STUDENT
+
+    // will be for if the tree is empty or we are done will return false
+    if (root == nullptr || curr == nullptr) {
+      return false;
+    }
+
+    // will give the the current key and value
+    key = curr->key;
+    val = curr->value;
+
+    // will be case 1,it goes to leftmost node if current has right child
+    if (curr->right != nullptr) {
+      // will create variable of BSTNode
+      BSTNode* node = curr->right;
+      // will go while left of node is not null
+      while (node->left != nullptr) {
+        node = node->left;
+      }
+      curr = node;
+      return true;
+    }
+
+    // will be case 2, otherwise go up to first past node, from it left child
+    BSTNode* successorAfter = nullptr;
+    BSTNode* ancestorBefore = root;
+    while (ancestorBefore != nullptr) {
+      if (curr->key < ancestorBefore->key) {
+        // will set the successor and ancestor
+        successorAfter = ancestorBefore;
+        ancestorBefore = ancestorBefore->left;
+      } else if (curr->key > ancestorBefore->key) {
+        ancestorBefore = ancestorBefore->right;
+      } else {
+        // will stop if anything else happens
+        break;
+      }
+    }
+
+    // will move to the next node, or nullptr if done
+    curr = successorAfter;
+    return true;
+  }
+
+  // =========================================================================
+
+  /**
+   * Removes the mapping for the given key from the `BSTMap`, and returns the
+   * value.
+   *
+   * Throws `out_of_range` if the key is not present in the map. Creates no new
+   * nodes, and does not update the key or value of any existing nodes.
+   *
+   * Runs in worst-case O(H) where H is the height of the tree.
+   */
+  ValT erase(const KeyT& key) {
+    // TODO_STUDENT
+    // will check if root is valid
+    if (!root) {
+      throw out_of_range("Key is not found");
+    }
+    // will creeate variable for the removed value
+    ValT removedTheValue;
+    // will use the erase helper function to erase
+    root = eraseHelperFunction(root, key, removedTheValue);
+    // will check if root is valid
+    if (root) {
+      root->parent = nullptr;
+    }
+    // will decrement size once per successful erase
+    sz--;
+    return removedTheValue;
+  }
+
+  // =========================================================================
+
+  /**
+   * Returns a pointer to the root node of the `BSTMap`. For autograder testing
+   * purposes only.
+   */
+  void* getRoot() const {
+    //
+    return this->root;
+  }
+};
+
+
+
+/*
+TESTS file: bstmap_tests.cpp********************************************************************************************************************
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+// project manual said I can add libraries for writing tests
+#include <map>
+#include <random>
+#include <string>
+#include <vector>
+
+#include "bstmap.h"
+
+using namespace std;
+using namespace testing;
+
+namespace {
+
+class Random {
+ private:
+  static mt19937 rng;
+
+ public:
+  static void seed(int s) {
+    Random::rng.seed(s);
+  }
+
+  /**
+   * Generate a random integer in the range 0 (inclusive) to `max` (exclusive)
+   */
+  static int randInt(int max) {
+    // Even though mt19937 is standardized, STL distributions aren't!
+    // So, unfortunately, even though this is biased, we're forced to
+    // do something like this. Technically uint32_fast_t isn't...
+    // totally consistent across platforms? But within reason it works.
+    return rng() % (max + 1);
+  }
+};
+
+std::mt19937 Random::rng;
+
+TEST(FakeTest, PleaseDeleteOnceYouWriteSome) {
+  // If no tests exist, GoogleTest fails to compile with a fairly confusing
+  // message. We have this empty test that does nothing to allow an empty
+  // autograder submission to compile and regularly fail. Once you write your
+  // own tests for the project, you can delete this one.
+  EXPECT_THAT(1, Eq(1));
+}
+
+}  // namespace
+
+//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+// will be helper function for building the map(string in the same format as
+// BSTMAP to_string), during task 1 in "willDoToStringIfMatchesMap" test
+string map_to_string(const map<int, int>& m) {
+  // will create variable for output string stream
+  ostringstream theString;
+
+  // will loop through m in function parameter
+  for (const auto& [k, v] : m) {
+    theString << k << ": " << v << endl;
+  }
+
+  // will return the string using str() function
+  return theString.str();
+}
+
+// tests:
+
+// for core, first task
+
+/*
+TEST(BSTMapCore, )
+{
+
+}
+*/
+
+TEST(BSTMapCore, willInsertAndIfItContains) {
+  BSTMap<int, string> theTree;
+  // will insert each value and key
+  theTree.insert(5, "five");
+  theTree.insert(3, "three");
+  theTree.insert(7, "seven");
+
+  // will check using expect_true
+  EXPECT_TRUE(theTree.contains(5));
+  EXPECT_TRUE(theTree.contains(3));
+  EXPECT_TRUE(theTree.contains(7));
+  EXPECT_FALSE(theTree.contains(1));
+}
+
+TEST(BSTMapCore, willEmptyandThanInsert) {
+  BSTMap<int, int> theTree;
+  // will use expect_true to check empty
+  EXPECT_TRUE(theTree.empty());
+  // 0u is the integer that represents the value zero, unsigned integer
+  EXPECT_EQ(theTree.size(), 0u);
+}
+
+TEST(BSTMapCore, willDoAtThrowsAndReturns) {
+  BSTMap<int, string> theTree;
+  // will insert each value and key
+  theTree.insert(1, "one");
+  theTree.insert(2, "two");
+
+  // will use expect eq and throw to check
+  EXPECT_EQ(theTree.at(1), "one");
+  EXPECT_EQ(theTree.at(2), "two");
+  EXPECT_THROW(theTree.at(3), out_of_range);
+}
+
+TEST(BSTMapCore, willDoEmptyMapEdgeCases) {
+  BSTMap<int, int> checkEmpty;
+  // will Check empty() and size() on empty map
+  EXPECT_TRUE(checkEmpty.empty());
+  // 0u is the integer that represents the value zero, for correct answer
+  EXPECT_EQ(checkEmpty.size(), 0u);
+
+  // will use Copy constructor with empty
+  BSTMap<int, int> copy(checkEmpty);
+  EXPECT_TRUE(copy.empty());
+  // 0u is the integer that represents the value zero, for correct answer
+  EXPECT_EQ(copy.size(), 0u);
+
+  // will use Assignment operator with empty
+  BSTMap<int, int> assigned;
+  assigned = checkEmpty;
+  EXPECT_TRUE(assigned.empty());
+  // 0u is the integer that represents the value zero, for correct answer
+  EXPECT_EQ(assigned.size(), 0u);
+}
+
+TEST(BSTMapCore, willClearAndResetsTree) {
+  BSTMap<int, int> theTree;
+  // will insert key and value
+  theTree.insert(1, 10);
+  theTree.insert(2, 20);
+  theTree.clear();
+
+  EXPECT_TRUE(theTree.empty());
+  // 0u is the integer that represents the value zero, for correct answer
+  EXPECT_EQ(theTree.size(), 0u);
+  EXPECT_FALSE(theTree.contains(1));
+}
+
+TEST(BSTMapCore, willDoCopyConstructorAndTheAssignment) {
+  BSTMap<int, int> theTree;
+  theTree.insert(1, 10);
+  theTree.insert(2, 20);
+
+  // will use copy constructor for map
+  BSTMap<int, int> copy(theTree);
+  // will use expect_true and use contains function
+  EXPECT_TRUE(copy.contains(1));
+  EXPECT_TRUE(copy.contains(2));
+
+  // will use map for checking if assigned
+  BSTMap<int, int> assign;
+  assign = theTree;
+  EXPECT_TRUE(assign.contains(1));
+  EXPECT_TRUE(assign.contains(2));
+}
+
+TEST(BSTMapCore, willDoToStringIfMatchesMap) {
+  // will create a vector to test the following data inside it
+  vector<pair<int, int>> entries{{3, 30}, {1, 10}, {4, 40}, {2, 20}};
+  BSTMap<int, int> theTree;
+  map<int, int> reference;
+
+  // will loop through the entries vector and match
+  for (auto [k, v] : entries) {
+    theTree.insert(k, v);
+    reference[k] = v;
+  }
+  // will use the map_to_string function from above
+  EXPECT_THAT(theTree.to_string(), StrEq(map_to_string(reference)));
+}
+
+TEST(BSTMapCore, willCopyAndAssignTheSize) {
+  BSTMap<int, int> theTree;
+  theTree.insert(5, 50);
+  theTree.insert(10, 100);
+
+  BSTMap<int, int> copy(theTree);
+  // 2u is the integer that represents the value two, for correct answer
+  EXPECT_EQ(copy.size(), 2u);
+  EXPECT_TRUE(copy.contains(5));
+  EXPECT_TRUE(copy.contains(10));
+
+  BSTMap<int, int> assigned;
+  assigned = theTree;
+  // 0u is the integer that represents the value two, for correct answer
+  EXPECT_EQ(assigned.size(), 2u);
+  EXPECT_TRUE(assigned.contains(5));
+  EXPECT_TRUE(assigned.contains(10));
+}
+
+TEST(BSTMapCore, WillDoEmptyAndInsertAndReturnFalse) {
+  BSTMap<int, int> theTree;
+
+  // will check Initially empty
+  EXPECT_TRUE(theTree.empty());
+
+  // will Insert a value
+  theTree.insert(42, 100);
+
+  // will not be empty
+  EXPECT_FALSE(theTree.empty());
+}
+
+TEST(BSTMapCore, WillDoAssignmentForSelf) {
+  BSTMap<int, int> theTree;
+  theTree.insert(1, 10);
+  theTree.insert(2, 20);
+
+  // wil be reference to the same object
+  BSTMap<int, int>& ref = theTree;
+  // will be self-assignment, but compiler won't warn
+  theTree = ref;
+
+  EXPECT_TRUE(theTree.contains(1));
+  EXPECT_TRUE(theTree.contains(2));
+  // 2u is the integer that represents the value two, for correct answer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+// task 2, augmentation////////////////////////////////////////////////
+
+TEST(BSTMapAugmented, willDoRemoveMinAndEmptyThrows) {
+  BSTMap<int, int> theTree;
+  // will use remove_min function and check error
+  EXPECT_THROW(theTree.remove_min(), runtime_error);
+}
+
+TEST(BSTMapAugmented, willDoRemoveMinWorks) {
+  BSTMap<int, string> theTree;
+  theTree.insert(3, "c");
+  theTree.insert(1, "a");
+  theTree.insert(2, "b");
+
+  // will use the actual functions first() and second()
+  auto removed = theTree.remove_min();
+  EXPECT_THAT(removed.first, Eq(1));
+  EXPECT_THAT(removed.second, Eq("a"));
+  EXPECT_FALSE(theTree.contains(1));
+  // 2u is the integer that represents the value two, for correct answer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+TEST(BSTMapAugmented, willDoOperatorEqualDifferent) {
+  BSTMap<int, int> afirst;
+  BSTMap<int, int> bsecond;
+  afirst.insert(1, 10);
+  bsecond.insert(1, 20);
+  // will check if different
+  EXPECT_FALSE(afirst == bsecond);
+}
+
+TEST(BSTMapAugmented, willDoOperatorEqualIfSameContent) {
+  BSTMap<int, string> afirst;
+  BSTMap<int, string> bsecond;
+  afirst.insert(2, "x");
+  afirst.insert(1, "y");
+  bsecond.insert(1, "y");
+  bsecond.insert(2, "x");
+  EXPECT_TRUE(afirst == bsecond);
+}
+
+TEST(BSTMapAugmented, willBeginAndNextIteratesInOrder) {
+  BSTMap<int, string> theTree;
+  theTree.insert(5, "five");
+  theTree.insert(2, "two");
+  theTree.insert(8, "eight");
+  theTree.insert(1, "one");
+  theTree.insert(3, "three");
+
+  // will create the vector for result
+  vector<pair<int, string>> theResult;
+
+  // will Call begin() to reset iterator to the smallest key
+  theTree.begin();
+
+  // will create variable k for keys and v for values
+  int k;
+  string v;
+  // will Collect all key-value pairs using next()
+  while (theTree.next(k, v)) {
+    theResult.push_back({k, v});
+  }
+
+  // will create vector with the following data inside
+  vector<pair<int, string>> expected{
+      {1, "one"}, {2, "two"}, {3, "three"}, {5, "five"}, {8, "eight"}};
+
+  EXPECT_THAT(theResult, Eq(expected));
+}
+
+TEST(BSTMapAugmented, willRemoveMinInRootTree) {
+  BSTMap<int, string> theTree;
+  theTree.insert(1, "one");
+  // will check right child only
+  theTree.insert(2, "two");
+
+  pair<int, string> removed = theTree.remove_min();
+
+  // will use the functions first() and second()
+  EXPECT_EQ(removed.first, 1);
+  EXPECT_EQ(removed.second, "one");
+
+  // After removing root, the tree should still contain {2,"two"}
+  EXPECT_FALSE(theTree.empty());
+  EXPECT_TRUE(theTree.contains(2));
+  EXPECT_FALSE(theTree.contains(1));
+}
+
+TEST(BSTMapAugmented, willDoNextOnTheEmptyTree) {
+  BSTMap<int, int> theTree;
+  // will just call it, nothing to start
+  theTree.begin();
+  int k;
+  int v;
+  // will return false on empty tree
+  EXPECT_FALSE(theTree.next(k, v));
+}
+
+TEST(BSTMapAugmented, willDoNextDoesNotSkipNodes) {
+  BSTMap<int, string> theTree;
+  // will insert each values and kes
+  theTree.insert(4, "four");
+  theTree.insert(2, "two");
+  theTree.insert(6, "six");
+  theTree.insert(1, "one");
+  theTree.insert(3, "three");
+  theTree.insert(5, "five");
+  theTree.insert(7, "seven");
+
+  // will use begin() fo beginning
+  theTree.begin();
+  vector<int> keys;
+  int k;
+  string v;
+  // will use next() function from other file
+  while (theTree.next(k, v)) {
+    keys.push_back(k);
+  }
+
+  // expected values inside this vector
+  vector<int> expected{1, 2, 3, 4, 5, 6, 7};
+  EXPECT_THAT(keys, Eq(expected));
+}
+
+TEST(BSTMapAugmented, willDoEqualityChecksTheDifferentSizes) {
+  // will create tree1 and tree2 with each value and keys inside
+  BSTMap<int, int> tree1;
+  tree1.insert(1, 10);
+  tree1.insert(2, 20);
+
+  BSTMap<int, int> tree2;
+  tree2.insert(1, 10);
+  tree2.insert(2, 20);
+  // will be one extra
+  tree2.insert(3, 30);
+
+  EXPECT_FALSE(tree1 == tree2);
+  EXPECT_FALSE(tree2 == tree1);
+}
+
+// for task 3//////////////////////////////////////////////
+
+TEST(BSTMapErase, willCheckOneChildLeft) {
+  BSTMap<int, string> theTree;
+  theTree.insert(3, "three");
+  // will make node with only left child
+  theTree.insert(2, "two");
+  theTree.insert(1, "one");
+
+  // will use erase() function from other file
+  string val = theTree.erase(2);
+  EXPECT_EQ(val, "two");
+  EXPECT_FALSE(theTree.contains(2));
+  EXPECT_TRUE(theTree.contains(1));
+  EXPECT_TRUE(theTree.contains(3));
+  // 2u is the integer that represents the value 2, unsigned integer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+TEST(BSTMapErase, willCheckLeafNode) {
+  BSTMap<int, string> theTree;
+  theTree.insert(2, "two");
+  // will be leaf node
+  theTree.insert(1, "one");
+  theTree.insert(3, "three");
+
+  // will erase left
+  string val = theTree.erase(1);
+  EXPECT_EQ(val, "one");
+  EXPECT_FALSE(theTree.contains(1));
+  // 2u is the integer that represents the value 2, unsigned integer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+TEST(BSTMapErase, willCheckTwoChildren) {
+  BSTMap<int, string> theTree;
+  // will insert each value and key
+  theTree.insert(5, "five");
+  theTree.insert(3, "three");
+  theTree.insert(7, "seven");
+  theTree.insert(2, "two");
+  theTree.insert(4, "four");
+
+  // will make has two children(2, 4)
+  string val = theTree.erase(3);
+  EXPECT_EQ(val, "three");
+  EXPECT_FALSE(theTree.contains(3));
+  EXPECT_TRUE(theTree.contains(2));
+  EXPECT_TRUE(theTree.contains(4));
+  // 4u is the integer that represents the value 4, unsigned integer
+  EXPECT_EQ(theTree.size(), 4u);
+}
+
+TEST(BSTMapErase, willCheckOneChildRight) {
+  BSTMap<int, string> theTree;
+  theTree.insert(1, "one");
+  // will be for node with only right child
+  theTree.insert(2, "two");
+  theTree.insert(3, "three");
+
+  // will use erase function from other file
+  string val = theTree.erase(2);
+  EXPECT_EQ(val, "two");
+  EXPECT_FALSE(theTree.contains(2));
+  EXPECT_TRUE(theTree.contains(1));
+  EXPECT_TRUE(theTree.contains(3));
+
+  // 2u is the integer that represents the value two, for correct answer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+TEST(BSTMapErase, willCheckRootNode) {
+  BSTMap<int, string> theTree;
+  theTree.insert(2, "two");
+  theTree.insert(1, "one");
+  theTree.insert(3, "three");
+
+  // will be for root node with two children
+  string val = theTree.erase(2);
+  EXPECT_EQ(val, "two");
+  EXPECT_FALSE(theTree.contains(2));
+  EXPECT_TRUE(theTree.contains(1));
+  EXPECT_TRUE(theTree.contains(3));
+  // 2u is the integer that represents the value two, unsigned integer
+  EXPECT_EQ(theTree.size(), 2u);
+}
+
+TEST(BSTMapErase, willeraseNodeTwoChildrenSuccessorNotImmediateRight) {
+  BSTMap<int, string> theTree;
+  theTree.insert(20, "twenty");
+  theTree.insert(10, "ten");
+  theTree.insert(30, "thirty");
+  theTree.insert(25, "twenty-five");
+  // will be successor of 20, not immediate right
+  theTree.insert(28, "twenty-eight");
+
+  // will use the erase() function
+  string val = theTree.erase(20);
+  EXPECT_EQ(val, "twenty");
+  EXPECT_FALSE(theTree.contains(20));
+
+  // will be All descendants should remain
+  EXPECT_TRUE(theTree.contains(10));
+  EXPECT_TRUE(theTree.contains(25));
+  EXPECT_TRUE(theTree.contains(28));
+  EXPECT_TRUE(theTree.contains(30));
+  // 4u is the integer that represents the value four, for correct answer
+  EXPECT_EQ(theTree.size(), 4u);
+}
+
+TEST(BSTMapErase, willCheckRootNoChildren) {
+  BSTMap<int, string> theTree;
+  // will be root only, and uses functions like insert and erase
+  theTree.insert(1, "one");
+  string val = theTree.erase(1);
+  EXPECT_EQ(val, "one");
+  EXPECT_FALSE(theTree.contains(1));
+  EXPECT_TRUE(theTree.empty());
+  // 0u is the integer that represents the value zero, for correct answer
+  EXPECT_EQ(theTree.size(), 0u);
+}
+
+TEST(BSTMapErase, willeraseNodeWithTwoChildrenSuccessorHasChild) {
+  BSTMap<int, string> theTree;
+  theTree.insert(10, "ten");
+  theTree.insert(5, "five");
+  theTree.insert(15, "fifteen");
+  // will be the successor of 10
+  theTree.insert(12, "twelve");
+  // will be the right child of successor
+  theTree.insert(13, "thirteen");
+
+  // will use erase() and contains() functions from other file
+  string val = theTree.erase(10);
+  EXPECT_EQ(val, "ten");
+  EXPECT_FALSE(theTree.contains(10));
+
+  // will be All descendants should remain
+  EXPECT_TRUE(theTree.contains(5));
+  EXPECT_TRUE(theTree.contains(12));
+  EXPECT_TRUE(theTree.contains(13));
+  EXPECT_TRUE(theTree.contains(15));
+  // 4u is the integer that represents the value four, unsigned integer
+  EXPECT_EQ(theTree.size(), 4u);
+}
+
+TEST(BSTMapErase, willCheckNonExistentKeyThrows) {
+  BSTMap<int, string> theTree;
+  theTree.insert(1, "one");
+  theTree.insert(2, "two");
+
+  // will use expect_throw and use erase function from other file for the error
+  EXPECT_THROW(theTree.erase(3), out_of_range);
+}
+
+
+*/
