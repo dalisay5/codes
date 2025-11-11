@@ -1,0 +1,1256 @@
+/*
+ANOTHER FILE: MAKE FILE IS AT VERY BOTTOM THIS CODE
+*/
+/*
+Akio Pancho, 11/11/25, project 4, CS211, Lab: thurs 10pm
+This project is about building a program that finds word ladders, which are basically chains
+of words where each changes only by one letter. The program reads a list of words from a 
+dictionary and lets you pick a start word and an end word. It can find the shortest path
+connecting the two words, or let you choose different word ladders. I also wrote and tested
+functions to count words, compare letters, and measure the length of a ladder. By running
+the program with many words, I learned how word length affects linked words in a ladder. 
+*/
+//for function declaration
+void runTests();
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <time.h>
+
+typedef struct WordNode_struct {
+    char* myWord;
+    struct WordNode_struct* next; 
+} WordNode;
+
+typedef struct LadderNode_struct {
+    WordNode* topWord;
+    struct LadderNode_struct* next; 
+} LadderNode;
+
+
+//------------------- \/\/\/ TOP OF TASK 1 \/\/\/ --------------------
+
+int countWordsOfLength(char* filename, int wordSize) { 
+    //---------------------------------------------------------
+    // TODO - write countWordsOfLength()    
+    //---------------------------------------------------------
+    
+    //will open the filename count the words of exactly wordSize length and return -1 is invalid
+
+    //will create the file variable so we can open it
+    FILE* theFile = fopen(filename, "r");
+
+    //checks if we can open the file
+    if(theFile==NULL)
+    {
+        printf("Error could not open file %s\n", filename);
+        //return -1 if cant open
+        return -1;
+    }
+
+    //will create variable for countWordsOfLength
+    int count = 0;
+    //will create variable for the buffer for the word for inside the scanf
+    char word[100];
+    //will scan through the word, and uses format specefier to read only upto 99 words, and count
+    while(fscanf(theFile, "%99s", word) == 1)
+    {
+        //will see if the length of word is same as wordSize
+        if((int)strlen(word) == wordSize)
+        {
+            count++;
+        }
+    }
+
+    //will close the file to avoid error
+    fclose(theFile);
+
+    return count; //modify this line
+}
+
+bool buildWordArray(char* filename, char** words, int numWords, int wordSize) { 
+    //---------------------------------------------------------
+    // TODO - write buildWordArray()    
+    //---------------------------------------------------------
+    
+    //will open file, fill words array with numWords words and words[i] is sent to size WordSize+1
+    
+    //will create variable for file
+    FILE* theArrayFile = fopen(filename, "r");
+
+    //will check if file can open
+    if(!theArrayFile)
+    {
+        return false;
+    }
+
+    //will create buffer with size 256 and the index variable
+    char buf[256];
+    int idx = 0;
+
+    //will scan up to 255 words and copy the string over while increasing the index
+    while(fscanf(theArrayFile, "%255s", buf) == 1)
+    {
+        //will see in wordsize is same as strlen of the buffer that I created ABOVE
+        if((int)strlen(buf) == wordSize)
+        {
+            //will see if the current index is less than numwords
+            if(idx<numWords)
+            {
+                //will do strcpy() and increase the index
+                strcpy(words[idx], buf);
+                idx++;
+            }
+            else
+            {
+                //will be for found more valid words than expected
+                //will close the file
+                fclose(theArrayFile);
+                return false;
+            }
+        }
+    }
+    //will close the file
+    fclose(theArrayFile);
+
+    //will be true only if we found exactly numWords matching words
+    return (idx==numWords); //modify this line
+}
+
+int findWord(char** words, char* aWord, int loInd, int hiInd) {
+    //---------------------------------------------------------
+    // TODO - write findWord()
+    //---------------------------------------------------------
+
+    //will do binary search aWord between low and high indices inclusive and return if found, -1 else
+
+    //will create variable for the low and higher indices
+    int low = loInd;
+    int theHigh = hiInd;
+
+    //will search through the highs and lows using binary search
+    while(low<=theHigh)
+    {
+        //will create variable for the middle and comparison variables
+        int mid = low + (theHigh-low)/2;
+        int cmp = strcmp(aWord, words[mid]);
+
+        //will return the middle if cmp is 0
+        if(cmp==0)
+        {
+            return mid;
+        }
+        //will set high to mid-1 if cmp is less than 0
+        if(cmp<0)
+        {
+            theHigh = mid-1;
+        }
+        //will set low to mid+1 if anything else
+        else
+        {
+            //will set the low to mid+1
+            low = mid+1;
+        }
+    }
+
+    //i dont need to modify the line because the variables are set
+    return -1; // modify this line
+}
+
+void freeWords(char** words, int numWords) {
+    //---------------------------------------------------------
+    // TODO - write freeWords()
+    //---------------------------------------------------------
+
+    //will free each string and free the array pointer
+
+    //will loop through the numwords and free memory
+    for(int i=0; i<numWords; i++)
+    {
+        free(words[i]);
+    }
+    //will free the words
+    free(words);
+
+}
+
+//---------------------- ^^^ END OF TASK 1 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF TASK 2 \/\/\/ -------------------
+
+int strCmpCnt(char* str1, char* str2) {
+    //---------------------------------------------------------
+    // TODO - write strCmpCnt()
+    //---------------------------------------------------------
+    
+    //will count total num of differing char positions and includes extra chars if length differs
+    
+    //will create the length variables as ints
+    int theLength1 = (int)strlen(str1);
+    int length2 = (int)strlen(str2);
+    //will create countWordsOfLength
+    int counter = 0;
+
+    //will look through mn and count how many difference
+    for(int i=0; i<theLength1 && i<length2; i++)
+    {
+        //will check if str1 element is not str2 element
+        if(str1[i] != str2[i])
+        {
+            counter++;
+        }
+    }
+
+    //will add the difference in length to the counter
+    if(theLength1>length2)
+    {
+        counter+=theLength1-length2;
+    }
+    //if anything else
+    else
+    {
+        counter+=length2-theLength1;
+    }
+
+    //will return the counter variable
+    return counter; //modify this line
+}
+
+int strCmpInd(char* str1, char* str2) {
+    //---------------------------------------------------------
+    // TODO - write strCmpInd()
+    //---------------------------------------------------------
+
+    //wil return index of first differing char, return -1 if identical, return length of shorter str if prefixed
+
+    //will create the i variable
+    int i=0;
+
+    //will loop through the str variables and return the element inside 
+    while(str1[i]!='\0' && str2[i]!='\0')
+    {
+        if(str1[i] != str2[i])
+        {
+            return i;
+        }
+        //will increment i to next index
+        i++;
+    }
+
+    //will go through each elemenet in str1 and str2
+    if(str1[i]=='\0' && str2[i]=='\0')
+    {
+        return -1;
+    }
+
+    //will return i 
+    return i; //modify this line
+}
+
+//---------------------- ^^^ END OF TASK 2 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF TASK 3 \/\/\/ -------------------
+
+void insertWordAtFront(WordNode** ladder, char* newWord) {
+    //---------------------------------------------------------
+    // TODO - write insertWordAtFront()
+    //---------------------------------------------------------
+
+    //will allocate a new WordNode that will point to newWord and insert at front(head) of *ladder
+    WordNode* newNode = (WordNode*)malloc(sizeof(WordNode));
+    // //will check if node is valid
+    if(!newNode)
+    {
+        return;
+    }
+    newNode->myWord = newWord;
+
+    //will then point the new node's next to the old ladder
+    newNode->next = *ladder;
+
+    //will make the new node the new front of ladder
+    *ladder = newNode;
+
+}
+
+int getLadderHeight(WordNode* ladder) {
+    //---------------------------------------------------------
+    // TODO - write getLadderHeight()
+    //---------------------------------------------------------
+    
+    //will be the counter variable
+    int counter = 0;
+    //will create the current WordNode variable
+    WordNode* theCurrent = ladder;
+    //will check while the current node is valid and increment count and set to next
+    while(theCurrent)
+    {
+        counter++;
+        theCurrent = theCurrent->next;
+    }
+
+    
+    return counter; // modify this line
+}
+
+bool checkForValidWord(char** words, int numWords, int wordSize, WordNode* ladder, char* aWord) {
+    //---------------------------------------------------------
+    // TODO - write checkForValidWord()
+    //---------------------------------------------------------
+    
+    //will check the user input against dictionary and ladder rules in this project
+
+    // print statement for various scenarios:
+        // user entered "DONE" - valid, top (#1) priority
+        if(strcmp(aWord, "DONE") == 0)
+        {
+            printf("Stopping with an incomplete word ladder...\n");
+            return true;
+        }
+        // user entered a word that is too long/short - invalid, priority #2
+        if((int)strlen(aWord)!=wordSize)
+        {
+            printf("Entered word does NOT have the correct length. Try again...\n");
+            return false;
+        }
+        // user entered a word that is not found in the dictionary - invalid, priority #3
+        if(findWord(words, aWord, 0, numWords-1)==-1)
+        {
+            printf("Entered word NOT in dictionary. Try again...\n");
+            return false;
+        }
+        // user entered a word that requires changing more than one-character - invalid, priority #4a
+        
+        // user entered a word that requires no character difference (the same word) - invalid, priority #4b
+        if(ladder!=NULL)
+        {
+            int difference = strCmpCnt(ladder->myWord, aWord);
+            if(difference!=1)
+            {
+                printf("Entered word is NOT a one-character change from the previous word. Try again...\n");
+                return false;
+            }
+        }
+        // user entered a word a valid word - valid, priority #5 (default)
+            
+        printf("Entered word is valid and will be added to the word ladder.\n");
+    
+    
+    return true; //modify this line
+}
+
+bool isLadderComplete(WordNode* ladder, char* finalWord) {
+    //---------------------------------------------------------
+    // TODO - write isLadderComplete()
+    //---------------------------------------------------------
+    
+    //will check if ladder is complete with top word == finalWord
+    if(ladder==NULL)
+    {
+        return false;
+    }
+    if(strcmp(ladder->myWord, finalWord)==0)
+    {
+        return true;
+    }
+    return false; //modify this line
+}
+
+WordNode* copyLadder(WordNode* ladder) {
+    //---------------------------------------------------------
+    // TODO - write copyLadder()
+    //---------------------------------------------------------
+    
+    //will make a copy of the given ladder and return the new head
+    if(ladder==NULL)
+    {
+        return NULL;
+    }
+    
+    WordNode* newHead=NULL;
+    WordNode* tail = NULL;
+
+    //will loop through the nodes
+    for(WordNode* theCurrent = ladder; theCurrent!=NULL; theCurrent=theCurrent->next)
+    {
+        WordNode* newNode = malloc(sizeof(WordNode));
+
+        //will check if newNode is valid
+        if(!newNode)
+        {
+            //will make program exit if newNode is not valid
+            exit(1);
+        }
+        //will point to the same dictionary string
+        newNode->myWord = theCurrent->myWord;
+        newNode->next = NULL;
+
+        if(newHead==NULL)
+        {
+            newHead = newNode;
+        }
+        else
+        {
+            tail->next = newNode;
+        }
+        tail = newNode;
+    }
+
+    //will return the new head at the start
+    return newHead; //modify this line
+}
+
+void freeLadder(WordNode* ladder) {
+    //---------------------------------------------------------
+    // TODO - write freeLadder()
+    //---------------------------------------------------------
+
+    //will free all nodes in the ladder
+    WordNode* freeNode;
+
+    //will check while ladder is not NULL
+    while(ladder!=NULL)
+    {
+        freeNode = ladder;
+        ladder = ladder->next;
+
+        //will free the free node itself and string
+        free(freeNode);
+    }
+}
+
+//---------------------- ^^^ END OF TASK 3 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF TASK 4 \/\/\/ -------------------
+
+void displayIncompleteLadder(WordNode* ladder) {
+    //-------------------------------------------------------------------
+// displayIncompleteLadder() should display the C-strings in the  
+//      [ladderWords] array with the first word at the bottom, and 
+//      each successive C-string one rung higher on the ladder. 
+//      The ladder [height] is the number of words it contains.  
+//      To signify the ladder as incomplete, display three lines of  
+//      "..." at the top of the ladder. The ladder must be displayed 
+//      with an indentation of two whitespaces on every line;
+//      Ex: if the start word is "data" and final word is "code" and
+//          the incomplete ladder is data->date->gate->gave, then the
+//          output display should be as follows (where the quotation  
+//          marks are NOT a part of the actual display):
+//              "  ..."
+//              "  ..."
+//              "  ..."
+//              "  gave"
+//              "  gate"
+//              "  date"
+//              "  data" 
+//-------------------------------------------------------------------
+    //---------------------------------------------------------
+    // TODO - write displayIncompleteLadder()
+    //---------------------------------------------------------
+
+    //will show the strings in ladderWords array with first word at bottom, and ones after one rung higher on ladder
+
+    //will check if ladder is equal to NULL
+    if(ladder==NULL)
+    {
+        //will print the top three "..." lines
+        printf("  ...\n");
+        printf("  ...\n");
+        printf("  ...\n");
+        return;
+    }
+
+    //will print all the next words first (to reach the end of list)
+    if(ladder->next != NULL)
+    {
+        displayIncompleteLadder(ladder->next);
+    }
+    else
+    {
+        //will print the three dots if the top of the ladder is reached
+        printf("  ...\n");
+        printf("  ...\n");
+        printf("  ...\n");
+    }
+    //will print the current word from the top back down to bottom
+    printf("  %s\n", ladder->myWord);
+
+}
+
+void displayCompleteLadder(WordNode* ladder) {
+//-------------------------------------------------------------------
+// displayCompleteLadder(), should display the C-strings in the  
+//      [ladderWords] array with the first word at the bottom, and  
+//      each successive C-string one rung higher on the ladder. 
+//      The ladder [height] is the number of words it contains.  
+//      In between each ladder rung, display the symbol '^' to 
+//      signify the character that changes between the two rungs of 
+//      the ladder. The ladder should be displayed with an indentation 
+//      of two whitespaces to the left of every word;
+//
+//      HINT: call strCmpInd() here
+//
+//      Ex: if the start word is "data" and final word is "code" 
+//          then the output display for a complete ladder should be  
+//          as follows (where the quotation marks are NOT a part of  
+//          the actual display):
+//              "  code"
+//              "    ^ "
+//              "  cove"
+//              "   ^  "
+//              "  cave"
+//              "  ^   "
+//              "  gave"
+//              "    ^ "
+//              "  gate"
+//              "  ^   "
+//              "  date"
+//              "     ^"
+//              "  data" 
+//-------------------------------------------------------------------
+    //---------------------------------------------------------
+    // TODO - write displayCompleteLadder()
+    //---------------------------------------------------------
+
+    //will show the ladder from bottom to top while printing "^" between each pair of words and each line starts with two spaces
+
+    //will help with the recursive function to print the word from bottom to top
+    if(ladder==NULL)
+    {
+        return;
+    }
+
+    //will be base case where bottom word (no word below it)
+    if(ladder->next == NULL)
+    {
+        //will have two spaces before word
+        printf("  %s\n", ladder->myWord);
+        return;
+    }
+
+    //will first print the top of the ladder using recursion
+    displayCompleteLadder(ladder->next);
+
+    //will make both words valid before comparing
+    if(ladder->next->myWord != NULL && ladder->myWord != NULL)
+    {
+        int diffIndex = strCmpInd(ladder->next->myWord, ladder->myWord);
+
+        //will print the caret line
+        printf("  ");
+        for(int i=0; i<diffIndex; i++)
+        {
+            printf(" ");
+        }
+        printf("^\n");
+    }
+
+    //will print the current word safely
+    if(ladder->myWord != NULL)
+    {
+        printf("  %s\n", ladder->myWord);
+    }
+
+}
+
+//---------------------- ^^^ END OF TASK 4 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF TASK 5 \/\/\/ -------------------
+
+void insertLadderAtBack(LadderNode** list, WordNode* newLadder) {
+    //---------------------------------------------------------
+    // TODO - write insertLadderAtBack()
+    //---------------------------------------------------------
+
+    //will add a new ladder which is in WordNode list, to the END of list
+
+    //will allocate a new LadderNode pointer
+    LadderNode* theNewNode = malloc(sizeof(LadderNode));
+    //will check if new node is null
+    if(theNewNode==NULL)
+    {
+        //will exit if the node is null
+        exit(1);
+    }
+
+    //will store the ladder pointer
+    theNewNode->topWord = newLadder;
+    theNewNode->next = NULL;
+
+    //will make new node the head if the list is empty, this is edge case #1
+    if(*list==NULL)
+    {
+        *list = theNewNode;
+        return;
+    }
+
+    //will findd the last node and add to the end if anything else
+    LadderNode* theCurrent = *list;
+    while(theCurrent->next != NULL)
+    {
+        theCurrent=theCurrent->next;
+    }
+    theCurrent->next = theNewNode;
+
+
+}
+
+WordNode* popLadderFromFront(LadderNode** list) {
+    //---------------------------------------------------------
+    // TODO - write popLadderFromFront()
+    //---------------------------------------------------------
+    
+    //will remove the first ladder from the front of list and return the WordNode pointer of ladder
+    
+    //will handle an empty list case
+    if(*list ==NULL)
+    {
+        return NULL;
+    }
+
+    //will save the ladder from the first node
+    LadderNode* temporaryNode = *list;
+    WordNode* ladder = temporaryNode->topWord;
+
+
+    //will move the list head down one node
+    *list = temporaryNode->next; //modify this line
+
+    //will free the laddernode itself (not the ladder though)
+    free(temporaryNode);
+
+    //will return the ladder pointer finally
+    return ladder; //modify this line
+}
+
+void freeLadderList(LadderNode* myList) {
+    //---------------------------------------------------------
+    // TODO - write freeLadderList()
+    //---------------------------------------------------------
+
+    //will free all the ladders and the list nodes
+
+    //will go through all the ladders and free them
+    
+    //will create new ladderNode variable
+    LadderNode* theCurrent = myList;
+
+    //will check if current is null in while loop
+    while(theCurrent != NULL)
+    {
+        //will set the temp node to the current node
+        LadderNode* nodeToDelete = theCurrent;
+        //will set the current to next one 
+        theCurrent = theCurrent->next;
+        //will use the freeladder function for the node to free later
+        freeLadder(nodeToDelete->topWord);
+        //will free to avoid leaks
+        free(nodeToDelete);
+    }
+
+}
+
+//---------------------- ^^^ END OF TASK 5 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF TASK 6 \/\/\/ -------------------
+
+WordNode* findShortestWordLadder(   char** words, 
+                                    bool* usedWord, 
+                                    int numWords, 
+                                    int wordSize, 
+                                    char* startWord, 
+                                    char* finalWord ) {
+    //---------------------------------------------------------
+    // TODO - write findShortestWordLadder()
+    //---------------------------------------------------------
+    
+    //will make function find the shortest ladder(minimum word changes) between startWord and finalWord, each word differs by 1 char from previous
+
+    //will create the first ladder with the starting word
+    WordNode* theStrtingLadder = NULL;
+    //will use the insertWordAtFront() function
+    insertWordAtFront(&theStrtingLadder, startWord);
+
+    //will then create the ladder list which will go by which ever goes first is the first to get output
+    LadderNode* ladderList = NULL;
+    //will use the insertLadderAtBack() function again
+    insertLadderAtBack(&ladderList, theStrtingLadder);
+
+    //will mark the start word as used in the dictionary
+    int startingIndex = findWord(words, startWord, 0, numWords-1);
+    //will check if starting index is greater or equal to 0
+    if(startingIndex>=0)
+    {
+        //usedWord pointer is initialized in the main below()
+        usedWord[startingIndex] = true;
+    }
+
+    //will use main Breadth-First search loop for level by level starting at starting point
+    while(ladderList!=NULL)
+    {
+        //will get the first ladder in the list
+        WordNode* currentLadder = popLadderFromFront(&ladderList);
+        //will not need to dereference a null pointer
+        if(currentLadder==NULL)
+        {
+            continue;
+        }
+
+        char* topWord = currentLadder->myWord;
+
+        //will try all of the possible one letter changes to the topWord
+        
+        //will make max length wordSize+1
+        char tempWord[wordSize+1];
+        strcpy(tempWord, topWord);
+        
+        for(int i=0; i<wordSize; i++)
+        {
+            //will create variable for the original character
+            char originalChar = tempWord[i];
+            //will add a second for loop and go through the alphabet
+            for(char ch='a'; ch<='z'; ch++)
+            {
+                if(ch==originalChar)
+                {
+                    //will skip the same letter
+                    continue;
+                }
+                //will make the element at tempWord equal to the current ch of for loop
+                tempWord[i] = ch;
+
+                //will check if the word is in the dictionary
+                int position = findWord(words, tempWord, 0, numWords-1);
+                //will be condition where if position is greater or equal to 0 and !userWord[pos] where its not valid
+                if(position>=0 && !usedWord[position])
+                {
+                    //will set the position in usedWord as true and valid
+                    usedWord[position] = true;
+
+                    //will copy the ladder to add the new word
+                    WordNode* newLadder = copyLadder(currentLadder);
+                    //will add the new word at the beginning
+                    insertWordAtFront(&newLadder, words[position]);
+                    //will add to the ladder list like a line
+                    insertLadderAtBack(&ladderList, newLadder);
+
+                    //will then exit if its found
+                    if(strcmp(words[position], finalWord)==0)
+                    {
+                        //will use the freeladder() and freeladderList()
+                        freeLadder(currentLadder);
+                        freeLadderList(ladderList);
+                        //will finally return the new ladder 
+                        return newLadder;
+                
+                    }
+                }
+            }
+            //will restore the original character that we displayed
+            tempWord[i] = originalChar;
+        }
+        //will free the currentLadder after getting the ladder
+        freeLadder(currentLadder);
+    }
+    //will finally return null is no ladder was found
+    freeLadderList(ladderList);
+    return NULL; //modify this line
+}
+
+//---------------------- ^^^ END OF TASK 6 ^^^ ----------------------
+
+
+//------------------- \/\/\/ TOP OF OTHERS \/\/\/ -------------------
+
+
+// randomly set a word from the dictionary word array
+void setWordRand(char** words, int numWords, int wordSize, char* aWord) {
+    printf("  Picking a random word for you...\n");
+    strcpy(aWord,words[rand()%numWords]);
+    printf("  Your word is: %s\n",aWord);
+}
+
+// interactive user-input to set a word;
+//  ensures the word is in the dictionary word array
+void setWord(char** words, int numWords, int wordSize, char* aWord) {
+    bool valid = false;
+    if (strcmp(aWord,"RAND") != 0) printf("  Enter a %d-letter word (enter RAND for a random word): ", wordSize);
+    int count = 0;
+    while (!valid) {
+        if (strcmp(aWord,"RAND") != 0) scanf("%s",aWord);
+        count++;
+        valid = (strlen(aWord) == wordSize);
+        if (valid) {
+            int wordInd = findWord(words, aWord, 0, numWords-1);
+            if (wordInd < 0) {
+                valid = false;
+                printf("    Entered word %s is not in the dictionary.\n",aWord);
+                printf("  Enter a %d-letter word (enter RAND for a random word): ", wordSize);
+            }
+        } else if (strcmp(aWord,"RAND") != 0) {
+            printf("    Entered word %s is not a valid %d-letter word.\n",aWord,wordSize);
+            printf("  Enter a %d-letter word (enter RAND for a random word): ", wordSize);
+        }
+        if (!valid && (count >= 5 || strcmp(aWord,"RAND") == 0)) { //too many tries, picking random word
+            setWordRand(words, numWords, wordSize, aWord);
+            valid = true;
+        }
+    }
+}
+
+// helpful debugging function to print a single Ladder
+void printLadder(WordNode* ladder) {
+    WordNode* currNode = ladder;
+    while (currNode != NULL) {
+        printf("\t\t\t%s\n",currNode->myWord);
+        currNode = currNode->next;
+    }
+}
+
+// helpful debugging function to print the entire list of Ladders
+void printList(LadderNode* list) {
+    printf("\n");
+    printf("Printing the full list of ladders:\n");
+    LadderNode* currList = list;
+    while (currList != NULL) {
+        printf("  Printing a ladder:\n");
+        printLadder(currList->topWord);
+        currList = currList->next;
+    }
+    printf("\n");
+}
+
+//---------------------- ^^^ END OF OTHERS ^^^ ----------------------
+
+
+
+
+
+//-----------------------------------------------------
+// The primary application is mostly fully-develop as
+//  provided in main(); changes in main() should be
+//  limited to updates made for the game play task(s)
+//  and testing-related purposes (such as command-line
+//  arguments for "TESTING MODE" to call a test case 
+//  master function, or something similar)
+//-----------------------------------------------------
+int main(int argc, char* argv[]) {
+
+    //will check if testing mode is turned on
+    if(argc>1 && strcmp(argv[1], "test")==0)
+    {
+        //will have test functions ALL THE WAY DOWN THIS FILE
+        runTests();
+        return 0;
+    }
+    //SAID I CAN ADD FOR TESTING ABOVE
+
+    printf("\n");
+    printf("--------------------------------------------\n");
+    printf("Welcome to the CS 211 Word Ladder Generator!\n");
+    printf("--------------------------------------------\n\n");
+    
+
+    //-------------- \/\/\/ TOP OF PROGRAM SETTINGS \/\/\/ --------------
+    //--- COMMAND-LINE ARGUMENTS AND/OR INTERACTIVE USER-INPUT \/\/\/ ---
+
+    
+    // default values for program parameters that may be set with
+    //  command-line arguments
+    int wordSize = -2114430;
+    char dict[100] = "notAfile";
+    char startWord[30] = "notAword";
+    char finalWord[30] = "notValid";
+    bool playMode = false;
+    
+    printf("\nProcessing command-line arguments...\n");
+
+    //-------------------------------------------------------------------
+    // command-line arguments:
+    //  [-n wordLen] = sets word length for word ladder;
+    //                 if wordLen is not a valid input
+    //                 (cannot be less than 2 or greater than 20),
+    //                 or missing from command-line arguments,
+    //                 then let user set it using interactive user input
+    // [-d dictFile] = sets dictionary file;
+    //                 if dictFile is invalid (file not found) or
+    //                 missing from command-line arguments, then let
+    //                 user set it using interactive user input
+    // [-s startWord] = sets the starting word;
+    //                  if startWord is invalid
+    //                  (not in dictionary or incorrect length) or
+    //                  missing from command-line arguments, then let
+    //                  user set it using interactive user input
+    // [-f finalWord] = sets the final word;
+    //                  if finalWord is invalid
+    //                  (not in dictionary or incorrect length) or
+    //                  missing from command-line arguments, then let
+    //                  user set it using interactive user input
+    // [-p playModeSwitch] = turns playMode ON if playModeSwitch is "ON"
+    //                       or leaves playMode OFF if playModeSwitch is
+    //                       anything else, including "OFF"
+    //-------------------------------------------------------------------
+
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i],"-n") == 0 && argc > i+1) {
+            wordSize = atoi(argv[i+1]);
+            ++i;
+        } else if (strcmp(argv[i],"-d") == 0 && argc > i+1) {
+            strcpy(dict, argv[i+1]);
+            ++i;
+        } else if (strcmp(argv[i],"-s") == 0 && argc > i+1) {
+            strcpy(startWord, argv[i+1]);
+            ++i;
+        } else if (strcmp(argv[i],"-f") == 0 && argc > i+1) {
+            strcpy(finalWord, argv[i+1]);
+            ++i;
+        } else if (strcmp(argv[i],"-p") == 0 && argc > i+1) {
+            playMode = (strcmp(argv[i+1],"ON") == 0);
+            ++i;
+        }
+    }
+    
+    srand((int)time(0));
+    
+    // set word length using interactive user-input
+    //  if wordSize == -2114430, it was NOT set with command-line args
+    while (wordSize < 2 || wordSize > 20) {
+        if (wordSize != -2114430) printf("Invalid word size for the ladder: %d\n", wordSize);
+        printf("Enter the word size for the ladder: ");
+        scanf("%d",&wordSize);
+        printf("\n");
+    }
+
+    printf("This program is a word ladder building game and a solver that\n");
+    printf("finds the shortest possible ");
+    printf("word ladder between two %d-letter words.\n\n",wordSize);
+    
+    // interactive user-input to set the dictionary file;
+    //  check that file exists; if not, user enters another file
+    //  if file exists, count #words of desired length [wordSize];
+    //  if dict == "notAfile", it was NOT set with command-line args
+    int numWords = countWordsOfLength(dict,wordSize);
+    while (numWords < 0) {
+        if (strcmp(dict, "notAfile") != 0) {
+            printf("  Dictionary %s not found...\n",dict);
+        }
+        printf("Enter filename for dictionary: ");
+        scanf("%s", dict);
+        printf("\n");
+        numWords = countWordsOfLength(dict,wordSize);
+    }
+    
+    // end program if file does not have at least two words of desired length
+    if (numWords < 2) {
+        printf("  Dictionary %s contains insufficient %d-letter words...\n",dict,wordSize);
+        printf("Terminating program...\n");
+        return -1;
+    }
+    
+    // allocate heap memory for the word array; only words with desired length
+    char** words = (char**)malloc(numWords*sizeof(char*));
+    for (int i = 0; i < numWords; ++i) {
+        words[i] = (char*)malloc((wordSize+1)*sizeof(char));
+    }
+    
+    // [usedWord] bool array has same size as word array [words];
+    //  all elements initialized to [false];
+    //  later, usedWord[i] will be set to [true] whenever
+    //      words[i] is added to ANY partial word ladder;
+    //      before adding words[i] to another word ladder,
+    //      check for previous usage with usedWord[i]
+    bool* usedWord = (bool*)malloc(numWords*sizeof(bool));
+    for (int i = 0; i < numWords; ++i) {
+        usedWord[i] = false;
+    }
+    
+    // build word array (only words with desired length) from dictionary file
+    printf("Building array of %d-letter words... ", wordSize);
+    bool status = buildWordArray(dict,words,numWords,wordSize);
+    if (!status) {
+        printf("  ERROR in building word array.\n");
+        printf("  File not found or incorrect number of %d-letter words.\n",wordSize);
+        printf("Terminating program...\n");
+        return -1;
+    }
+    printf("Done!\n\n");
+
+    // set the two ends of the word ladder using interactive user-input
+    //  make sure start and final words are in the word array,
+    //  have the correct length (implicit by checking word array), AND
+    //  that the two words are not the same
+    // start/final words may have already been set using command-line arguments
+    // the start/final word can also be set to "RAND" resulting in a random
+    //  assignment from any element of the words array
+    if (strcmp(startWord,"RAND")==0) {
+        printf("Setting the start word randomly...\n");
+        setWordRand(words, numWords, wordSize, startWord);
+    } else if (findWord(words, startWord,0, numWords-1) < 0 || strlen(startWord) != wordSize) {
+        if (strcmp(startWord,"notAword")==0) {
+            printf("Setting the start %d-letter word... \n", wordSize);
+        } else {
+            printf("Invalid start word %s. Resetting the start %d-letter word... \n", startWord, wordSize);
+        }
+        setWord(words, numWords, wordSize, startWord);
+    }
+    printf("\n");
+    
+    if (strcmp(finalWord,"RAND")==0) {
+        printf("Setting the final word randomly...\n");
+        setWordRand(words, numWords, wordSize, finalWord);
+    } else if (findWord(words, finalWord,0, numWords-1) < 0 || strlen(finalWord) != wordSize) {
+        if (strcmp(finalWord,"notValid")==0) {
+            printf("Setting the final %d-letter word... \n", wordSize);
+        } else {
+            printf("Invalid final word %s. Resetting the final %d-letter word... \n", finalWord, wordSize);
+        }
+        setWord(words, numWords, wordSize, finalWord);
+    }
+    while (strcmp(finalWord,startWord) == 0) {
+        printf("  The final word cannot be the same as the start word (%s).\n",startWord);
+        printf("Setting the final %d-letter word... \n", wordSize);
+        setWord(words, numWords, wordSize, finalWord);
+    }
+    printf("\n");
+    
+    //----------------- ^^^ END OF PROGRAM SETTINGS ^^^ -----------------
+    
+    
+    //-------------- \/\/\/ TOP OF GAME PLAY SECTION \/\/\/ --------------
+    
+    if (!playMode) {
+        printf("\n");
+        printf("---------------------------------------------\n");
+        printf("No Word Ladder Builder Game; Play Mode is OFF\n");
+        printf("---------------------------------------------\n");
+        printf("\n");
+    } else {
+        printf("\n");
+        printf("-----------------------------------------------\n");
+        printf("Welcome to the CS 211 Word Ladder Builder Game!\n");
+        printf("-----------------------------------------------\n");
+        printf("\n");
+
+        printf("Your goal is to make a word ladder between two ");
+        printf("%d-letter words: \n  %s -> %s\n\n",wordSize, startWord,finalWord);
+        
+        WordNode* userLadder = NULL;
+        int ladderHeight = 0; // initially, the ladder is empty
+        int startInd = findWord(words, startWord, 0, numWords-1);
+        insertWordAtFront(&userLadder, words[startInd]);
+        ladderHeight++; // Now, the ladder has a start word
+            
+        char aWord[30] = "XYZ";
+        printf("\n");
+        
+        // Let the user build a word ladder interactively & iteratively.
+        // First, check that ladder is not too long AND not complete.
+        //-------------------------------------------------------------------
+        // TODO - PART OF Task 4 (GAME PLAY): modify the while loop condition
+        //          such that the word ladder building process continues only
+        //          if BOTH of the following conditions are met:
+        //              1. the user is NOT attempting to stop the word ladder
+        //                 building process, which occurs if the entered word
+        //                 [aWord] from the last iteration is "DONE"
+        //              2. the ladder is still incomplete; i.e. the last word
+        //                 added to ladder is not the final word;
+        //                 note: this should use a call to isLadderComplete()
+        //-------------------------------------------------------------------
+
+        //will compare if the aword and done are same and if ladder() functiion is valid
+        while (strcmp(aWord, "DONE")!=0 && !isLadderComplete(userLadder, finalWord)) {   // modify this line
+            printf("The goal is to reach the final word: %s\n",finalWord);
+            printf("The ladder is currently: \n");
+            displayIncompleteLadder(userLadder);
+            printf("Current ladder height: %d\n",ladderHeight);
+            printf("Enter the next word (or DONE to stop): ");
+            scanf("%s",aWord);
+            printf("\n");
+            
+            // Make sure the entered word is valid for the next ladder rung;
+            // if not, repeatedly allow user to enter another word until one is valid   
+            while (!checkForValidWord(words, numWords, wordSize, userLadder, aWord)) {
+                printf("Enter another word (or DONE to stop): ");
+                scanf("%s",aWord);
+                printf("\n");
+            }
+
+            // add the entered word to the ladder (unless it is "DONE")
+            if (strcmp(aWord,"DONE") != 0) {
+                int currInd = findWord(words, aWord, 0, numWords-1);
+                insertWordAtFront(&userLadder, words[currInd]);
+                ladderHeight++;
+            }
+            printf("\n");
+        }
+
+        // Check if the built word ladder is complete and
+        // display the word ladder appropriately.
+        if (isLadderComplete(userLadder, finalWord)) {
+            printf("Word Ladder complete!\n\n");
+            displayCompleteLadder(userLadder);
+            printf("\nWord Ladder height = %d\n\n", ladderHeight);
+            printf("Can you find a shorter Word Ladder next time??? \n");
+        } else {
+            printf("The final Word Ladder is incomplete:\n");
+            displayIncompleteLadder(userLadder);
+            printf("Word Ladder height = %d\n\n", ladderHeight);
+            printf("Can you complete the Word Ladder next time??? \n");
+        }
+        freeLadder(userLadder);
+    }
+    
+    //----------------- ^^^ END OF GAME PLAY SECTION ^^^ -----------------
+    
+    
+    //-------------- \/\/\/ TOP OF WORD LADDER SOLVER \/\/\/ --------------
+    
+    printf("\n\n");
+    printf("-----------------------------------------\n");
+    printf("Welcome to the CS 211 Word Ladder Solver!\n");
+    printf("-----------------------------------------\n");
+    printf("\n");
+    
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // OPTIONAL EXTENTION TO FIND LONGEST WORD LADDER:
+    //  program must end with finding the shortest word ladder
+    //  (& the associated print statements); if you choose to
+    //  extend your program to find the longest word ladder,
+    //  put the long word ladder algorithm (& the associated
+    //  print statements) BEFORE the short word ladder algorithm
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    
+    // run the algorithm to find the shortest word ladder
+    WordNode* myLadder = findShortestWordLadder(words, usedWord, numWords, wordSize, startWord, finalWord);
+
+    // display word ladder and its height if one was found
+    if (myLadder == NULL) {
+        printf("There is no possible word ladder from %s to %s\n",startWord,finalWord);
+    } else {
+        printf("Shortest Word Ladder found!\n\n");
+        displayCompleteLadder(myLadder);
+        //printLadder(myLadder);
+    }
+    printf("\nWord Ladder height = %d\n\n",getLadderHeight(myLadder));
+
+    //----------------- ^^^ END OF WORD LADDER SOLVER ^^^ -----------------
+    
+    
+    //-------------- \/\/\/ TOP OF CLEAN-UP \/\/\/ --------------
+    
+    // TODO - Part of ALL Tasks:
+    //      free all heap-allocated memory to avoid potential
+    //      memory leaks. Since the word length for the word
+    //      ladder is variable (i.e. set by a command-line
+    //      argument or interactive user-input) any array
+    //      whose size depends on the word length should be
+    //      dynamically heap-allocated, and thus, must be
+    //      tracked and freed before program termination.
+    //      A big part of the memory management & freeing
+    //      is handled by the following functions, but
+    //      you may have introduced additional heap-memory
+    //      allocations, especially as part of the game play.
+    
+    // free the heap-allocated memory for the shortest ladder
+    freeLadder(myLadder);
+    // free the heap-allocated memory for the words array
+    freeWords(words,numWords);
+    free(usedWord);
+    
+    //----------------- ^^^ END OF CLEAN-UP ^^^ -----------------
+
+    
+    return 0;
+}
+
+//will be for test 1 which will check if countWordsOfLength function works
+void test_countWordsOfLength()
+{
+    // FILE* file = fopen("words.txt", "r");
+    int counter = countWordsOfLength("dictionary.txt", 4);
+    printf("Test for countWordsOfLength(): count = %d (expected greater than 0)\n", counter);
+    // fclose(file);
+}
+
+//test 2 will be for checking strCmpCnt function
+void test_strCmpCnt()
+{
+    int different = strCmpCnt("data", "date");
+    printf("Test strCmpCnt: diff = %d (expected 1)\n", different);
+}
+
+//will be test 3 to check getLadderHeight()
+void test_getLadderHeight()
+{
+    //will allocate memory for string because insertWordAtFront gets pointers to heap-allocated words
+    //start with code, coda, cada
+    char* theWord1 = (char*)malloc(5 * sizeof(char));
+    char* theWord2 = (char*)malloc(5 * sizeof(char));
+    char* theWord3 = (char*)malloc(5 * sizeof(char));
+
+    //will copy string into allocated memory
+    strcpy(theWord1, "code");
+    strcpy(theWord2, "coda");
+    strcpy(theWord3, "cada");
+
+    //will than create the starting node which is ladder and use insert function to change address of ladder
+    WordNode* ladder = NULL;
+    insertWordAtFront(&ladder, theWord1);
+    insertWordAtFront(&ladder, theWord2);
+    insertWordAtFront(&ladder, theWord3);
+    //will print the output
+    printf("Test getLadderHeight: height= %d (expected 3)\n", getLadderHeight(ladder));
+    //will free to avoid leaks
+    freeLadder(ladder);
+
+    //will free the actual strings after freeing the ladder
+    free(theWord1);
+    free(theWord2);
+    free(theWord3);
+}
+//function for running all the tests 
+void runTests()
+{
+    //will be for master teseting function
+    printf("will run the tests...\n");
+    test_countWordsOfLength();
+    test_strCmpCnt();
+    test_getLadderHeight();
+    printf("All tests has completed.\n");
+}
+
+//MAKE FILE BELOW***************************************************************************
+build:
+	gcc -g main.c -o ladders.exe
+
+run_fun: build
+	./ladders.exe -p ON -n 4 -d dictionary.txt -s RAND -f RAND
+
+#will run the program where user enters input manually, basically interactively
+run_interactive: build
+	./ladders.exe
+
+#will run the program for valgrind in order to check for any leaks
+valgrind: build
+	valgrind --leak-check=full --track-origins=yes ./ladders.exe -p ON -n 4 -d dictionary.txt -s RAND -f RAND
+
+#will run the program using present inputs from the text file, basically redirect
+run_redirect: build
+	./ladders.exe < gameplayDemoInputs.txt
+
+#will be testing command
+test: build
+	./ladders.exe test
+
+#will than clean up the old compiled files for the end
+clean:
+	rm -f ladders.exe
