@@ -1,0 +1,694 @@
+//HAS 2 OTHER FILES, ONE FOR Application.cpp and ONE FOR json.hpp
+//graph.h file below:
+/*
+
+description: Basically, This project will take a campus map from OpenStreetMap and 
+turn it into a graph where buildings and walkway points become edges and paths become
+connections. It wll reads all of the information from a json file and will link close 
+locations together based on how close they are in real life. After, the program will 
+use Dijkstra's program to find the shortest route between the places. The user will 
+choose two buildings where the program picks a meeting spot between them and path for 
+people. Overall, the project teaches how maps or graphs work to find people their way
+
+*/
+
+#pragma once
+
+#include <iostream>
+#include <map>
+#include <set>
+#include <unordered_map>
+#include <vector>
+
+using namespace std;
+
+/// @brief Simple directed graph using an adjacency list. //
+/// @tparam VertexT vertex type
+/// @tparam WeightT edge weight type
+template <typename VertexT, typename WeightT>
+class graph {
+ private:
+  // TODO_STUDENT
+
+  //will make adjacency list where each vertex maps to maps of neighbors and their weights
+  unordered_map<VertexT, unordered_map<VertexT, WeightT>> aList;
+
+
+ public:
+  /// Default constructor
+  graph() {
+    // TODO_STUDENT
+    //nothing to do right now needed
+  }
+
+  /// @brief Add the vertex `v` to the graph, must typically be O(1).
+  /// @param v
+  /// @return true if successfully added; false if it existed already
+  bool addVertex(VertexT v) {
+    // TODO_STUDENT
+    
+    //will check if element in the adjency list is not equal to end()
+    if(aList.find(v) != aList.end())
+    {
+      //will say that vertex already exists
+      return false;
+    }
+    //will set that element equal to the unordered map
+    aList[v] = unordered_map<VertexT, WeightT>();
+    //wll than return true;
+    return true;
+  }
+
+  /// @brief Add or overwrite directed edge in the graph, must typically be
+  /// O(1).
+  /// @param from starting vertex
+  /// @param to ending vertex
+  /// @param weight edge weight / label
+  /// @return true if successfully added or overwritten;
+  ///         false if either vertices isn't in graph
+  bool addEdge(VertexT from, VertexT to, WeightT weight) {
+    // TODO_STUDENT
+
+    //will check if both of the vertexes are in the list and exists
+    if(aList.find(from)==aList.end() || aList.find(to)==aList.end())
+    {
+      //will be if one or both of the vertices are missing
+      return false;
+    }
+
+    //will add or overwrite that edge
+    aList[from][to] = weight;
+    //will return true;
+    return true;
+  }
+
+  /// @brief Maybe get the weight associated with a given edge, must typically
+  /// be O(1).
+  /// @param from starting vertex
+  /// @param to ending vertex
+  /// @param weight output parameter
+  /// @return true if the edge exists, and `weight` is set;
+  ///         false if the edge does not exist
+  bool getWeight(VertexT from, VertexT to, WeightT& weight) const {
+    // TODO_STUDENT
+
+    //will set from variable variable to from element using auto so it can store any data type
+    auto fromTheBigVariable = aList.find(from);
+    //will be from vertex not found
+    if(fromTheBigVariable == aList.end())
+    {
+      //will return false
+      return false;
+    }
+
+    //wll do the same for from Variable 2, will use auto so it can be any data type
+    auto fromVariable2 = fromTheBigVariable->second.find(to);
+    //will be if edge is not found
+    if(fromVariable2 == fromTheBigVariable->second.end())
+    {
+      //will return the false
+      return false;
+    }
+    //will set wieght to second of the from variable 2
+    weight = fromVariable2->second;
+    //will return true
+    return true;
+  }
+
+  /// @brief Get the out-neighbors of `v`. Must run in at most O(|V|).
+  /// @param v
+  /// @return vertices that v has an edge to
+  set<VertexT> neighbors(VertexT v) const {
+    set<VertexT> S;
+    // TODO_STUDENT
+
+    //will create variable fro the result using sets so values are unique
+    set<VertexT> theResult;
+    //will create variable for store element v of aList
+    auto elementIsFound = aList.find(v);
+    //will check if element is not equal to end()
+    if(elementIsFound != aList.end())
+    {
+      //will go trough the elementFind
+      for(auto &inside : elementIsFound->second)
+      {
+        theResult.insert(inside.first);
+      }
+    }
+    //will return the result
+    return theResult;
+  }
+
+  /// @brief Return a vector containing all vertices in the graph
+  vector<VertexT> getVertices() const {
+    // TODO_STUDENT
+
+    //will store theResult variable
+    vector<VertexT> theBigResult;
+    //will loop through the element of the aList
+    for(auto &theBigPair : aList)
+    {
+      //will push back the element into theResult
+      theBigResult.push_back(theBigPair.first);
+    }
+    //will return the result which is a vector
+    return theBigResult;
+  }
+
+  /// @brief Get the number of vertices in the graph. Runs in O(1).
+  size_t numVertices() const {
+    // TODO_STUDENT
+    //will return the size of the aList variable i made above
+    return aList.size();
+  }
+
+  /// @brief Get the number of directed edges in the graph. Runs in at most
+  /// O(|V|), but should be O(1).
+  size_t numEdges() const {
+    // TODO_STUDENT
+
+    //will store the counter using size_t so that it can store any big num
+    size_t counter = 0;
+
+    //will traverse the elements of aList while using auto so it can be any type of data
+    for(auto &thePairInside : aList)
+    {
+      //will add on to the counter of the size of the second of pair element inside the aList
+      counter += thePairInside.second.size();
+    }
+
+    //will return the number counter
+    return counter;
+  }
+};
+
+
+
+
+
+//application.cpp file below:
+/*
+
+description: Basically, This project will take a campus map from OpenStreetMap and 
+turn it into a graph where buildings and walkway points become edges and paths become
+connections. It wll reads all of the information from a json file and will link close 
+locations together based on how close they are in real life. After, the program will 
+use Dijkstra's program to find the shortest route between the places. The user will 
+choose two buildings where the program picks a meeting spot between them and path for 
+people. Overall, the project teaches how maps or graphs work to find people their way
+
+*/
+
+#include "application.h"
+
+#include <iostream>
+#include <limits>
+#include <map>
+#include <queue> // priority_queue //
+#include <set>
+#include <stack>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
+#include "dist.h"
+#include "graph.h"
+
+//***WILL BE FOR nlohmann json as said in project manual
+#include "json.hpp"
+// I will  use "=nlohmann::" so tht I can just say "json j" to make variable inside of including "nlohmann::"
+using json = nlohmann::json;
+//***WILL FOR from project manual
+
+
+using namespace std;
+
+double INF = numeric_limits<double>::max();
+
+void buildGraph(istream &input, graph<long long, double> &g,
+                vector<BuildingInfo> &buildings,
+                unordered_map<long long, Coordinates> &coords) {
+  // TODO_STUDENT
+
+  //will create the json j and input 
+  json inputJson;
+  input >> inputJson;
+
+  
+  // will Add waypoint vertices (non-building)
+  //will check if j contains waypiints
+  if (inputJson.contains("waypoints")) {
+    //will loop through elements of j
+    for (const auto &theWay : inputJson["waypoints"]) {
+      //wll use long long to store any big number of id inside w
+      long long id = theWay["id"];
+      //will use double for the latitude and longitude
+      double lat = theWay["lat"];
+      double lon = theWay["lon"];
+
+      //will use emplace to add the coordinates
+      coords.emplace(id, Coordinates(lat, lon));
+      //will use addVertex function for g
+      g.addVertex(id);
+    }
+  }
+
+  
+  //wll Add building vertices (DO NOT add to coords)
+  //
+  if (inputJson.contains("buildings")) {
+    //will loop in j
+    for (const auto &b : inputJson["buildings"]) {
+      //will create info variable for BuldingInfo
+      BuildingInfo TheImportantInformation;
+      //will set id of info to b elemnent id
+      TheImportantInformation.id = b["id"];
+      //will set the location
+      TheImportantInformation.location = Coordinates(b["lat"], b["lon"]);
+      //will set the name and abbrevation
+      TheImportantInformation.name = b["name"];
+      TheImportantInformation.abbr = b["abbr"];
+
+      //will then use pushback()
+      buildings.push_back(TheImportantInformation);
+      //will use addVertex () function
+      g.addVertex(TheImportantInformation.id);
+    }
+  }
+
+  //
+  // will Add edges for footways (undirected)
+  //
+  if (inputJson.contains("footways")) {
+    //will use for each loop for j elements
+    for (const auto &footy : inputJson["footways"]) {
+      //will add another loop for fw
+      for (size_t i = 0; i + 1 < footy.size(); ++i) {
+        //will use long long a and b to store any large number
+        long long a = footy[i];
+        long long b = footy[i + 1];
+
+        // will be both must be in waypoint coords
+        if (!coords.count(a) || !coords.count(b)) 
+        {
+          continue;
+        }
+
+        //will set coordinate 1 and 2 as cosntances to a and b of coords
+        const Coordinates &c1 = coords[a];
+        const Coordinates &c2 = coords[b];
+
+        //will create double d and use the function
+        double d = distBetween2Points(c1, c2);
+        //will use add edges function
+        g.addEdge(a, b, d);
+        g.addEdge(b, a, d);
+      }
+    }
+  }
+
+  //
+  // will Connect each building to nearby waypoints
+  //
+  //will create radius variable as const, this was mentioned in project manual
+  const double RADIUS = 0.036;
+
+  //will use for each loop for buildings
+  for (const BuildingInfo &b : buildings) {
+    //will be for variable and store any big number inside bid
+    long long bid = b.id;
+
+    //will use for each loop for coords
+    for (const auto &p : coords) {
+      //will be long long to store any big number and set it to first of p
+      long long nid = p.first;
+      //will be constant for nc variable
+      const Coordinates &nc = p.second;
+
+      //will make double d and use function below
+      double d = distBetween2Points(b.location, nc);
+
+      //will see if d is less or equal to radius constant vairbale i amde
+      if (d <= RADIUS) {
+        //will use the addEdge functons
+        g.addEdge(bid, nid, d);
+        g.addEdge(nid, bid, d);
+      }
+    }
+  }
+}
+
+BuildingInfo getBuildingInfo(const vector<BuildingInfo> &buildings,
+                             const string &query) {
+  for (const BuildingInfo &building : buildings) {
+    if (building.abbr == query) {
+      return building;
+    } else if (building.name.find(query) != string::npos) {
+      return building;
+    }
+  }
+  BuildingInfo fail;
+  fail.id = -1;
+  return fail;
+}
+
+BuildingInfo getClosestBuilding(const vector<BuildingInfo> &buildings,
+                                Coordinates c) {
+  double minDestDist = INF;
+  BuildingInfo ret = buildings.at(0);
+  for (const BuildingInfo &building : buildings) {
+    double dist = distBetween2Points(building.location, c);
+    if (dist < minDestDist) {
+      minDestDist = dist;
+      ret = building;
+    }
+  }
+  return ret;
+}
+
+vector<long long> dijkstra(const graph<long long, double> &G, long long start,
+                           long long target,
+                           const set<long long> &ignoreNodes) {
+  
+  
+
+   // will be for if start == target just in case
+    if (start == target) {
+        //will return the vector where type if long long of start
+        return vector<long long>{start};
+    }
+
+    //  will be comparison class for priority queue, this what in project manual
+    class prioritize {
+    public:
+        bool operator()(const pair<long long, double> &p1,
+                        const pair<long long, double> &p2) const {
+            //will be for smallest distance first
+            return p1.second > p2.second; 
+        }
+    };
+
+    //will be for shortest distance to the each node
+    unordered_map<long long, double> theBigDistance; 
+    //will be for the node before in the shortest path
+    unordered_map<long long, long long> thePrevious; 
+
+    //will be for preiorty queue, this was in project manual
+    priority_queue<pair<long long, double>,
+                   vector<pair<long long, double>>,
+                   prioritize>
+        thePriorQueue;
+
+    //will use push() and make_pair where it will group the data types instead of needing to put "pair<int,int>"  
+    thePriorQueue.push(make_pair(start, 0.0));
+    //will set the start index of dist to 0.0
+    theBigDistance[start] = 0.0;
+
+    //wll check if pq is not empty
+    while (!thePriorQueue.empty()) {
+        //will use long long to store any big num in node and set it to pq.top().first variable
+        long long theNode = thePriorQueue.top().first;
+        //will use double for node and set it to pq.tip() of second to get the second
+        double theBigNodeDistance = thePriorQueue.top().second;
+        //will then pop() it
+        thePriorQueue.pop();
+
+        // will skip nodes already processed with shorter distance, if nodeDst is bigger than node dist
+        if (theBigNodeDistance > theBigDistance[theNode]) {
+          //will than continue
+            continue;
+        }
+
+        //will use for each for long long element of g.neighbor(ndoe)
+        for (long long theNeighborInside : G.neighbors(theNode)) {
+            // will skip ignored nodes except start/target
+            if (ignoreNodes.count(theNeighborInside)>0 && theNeighborInside!=start && theNeighborInside!=target) {
+                //will then continue
+                continue;
+            }
+
+            //will use double data type for the weight
+            double theWeight;
+            //will set edge boolean and set it to weight of G
+            bool hasEdge = G.getWeight(theNode, theNeighborInside, theWeight);
+            //will check if the boolean is true 
+            if (!hasEdge) 
+            {
+              //will then make it continue
+              continue;
+            }
+
+            //will use double for the new distance and set it
+            double theNewDist = theBigNodeDistance + theWeight;
+            if (theBigDistance.find(theNeighborInside) == theBigDistance.end() || theNewDist < theBigDistance[theNeighborInside]) {
+                //will set the neighbor element of dst to new distance
+                theBigDistance[theNeighborInside] = theNewDist;
+                //will set the element of prevous to node
+                thePrevious[theNeighborInside] = theNode;
+                //will use push and make_pair so it does need to set it manually like "pair<int,int"
+                thePriorQueue.push(make_pair(theNeighborInside, theNewDist));
+            }
+        }
+    }
+
+    // will be for make the path vector
+    vector<long long> theGoodpath;
+    //will be long long current and set it to target
+    long long theCurr = target;
+    //will check if the find curr is not equal to prev end
+    while (thePrevious.find(theCurr)!= thePrevious.end()) {
+        //will the insert it at the front
+        theGoodpath.insert(theGoodpath.begin(), theCurr); 
+        //will then set the curr to curr leemnt of prev
+        theCurr = thePrevious[theCurr];
+    }
+
+    //will then insert start at the start if the sart is be able to be reached, if find is not equal to dist end
+    if (theBigDistance.find(target) != theBigDistance.end()) {
+        //will then use insert of begin() and start in path
+        theGoodpath.insert(theGoodpath.begin(), start);
+    }
+
+    //will then return the path
+    return theGoodpath;
+
+}
+double pathLength(const graph<long long, double> &G,
+                  const vector<long long> &path) {
+  double length = 0.0;
+  double weight;
+  for (size_t i = 0; i + 1 < path.size(); i++) {
+    bool res = G.getWeight(path.at(i), path.at(i + 1), weight);
+    if (!res) {
+      return -1;
+    }
+    length += weight;
+  }
+  return length;
+}
+
+void outputPath(const vector<long long> &path) {
+  for (size_t i = 0; i < path.size(); i++) {
+    cout << path.at(i);
+    if (i != path.size() - 1) {
+      cout << "->";
+    }
+  }
+  cout << endl;
+}
+
+// Honestly this function is just a holdover from an old version of the project
+void application(const vector<BuildingInfo> &buildings,
+                 const graph<long long, double> &G) {
+  string person1Building, person2Building;
+
+  set<long long> buildingNodes;
+  for (const auto &building : buildings) {
+    buildingNodes.insert(building.id);
+  }
+
+  cout << endl;
+  cout << "Enter person 1's building (partial name or abbreviation), or #> ";
+  getline(cin, person1Building);
+
+  while (person1Building != "#") {
+    cout << "Enter person 2's building (partial name or abbreviation)> ";
+    getline(cin, person2Building);
+
+    // Look up buildings by query
+    BuildingInfo p1 = getBuildingInfo(buildings, person1Building);
+    BuildingInfo p2 = getBuildingInfo(buildings, person2Building);
+    Coordinates P1Coords, P2Coords;
+    string P1Name, P2Name;
+
+    if (p1.id == -1) {
+      cout << "Person 1's building not found" << endl;
+    } else if (p2.id == -1) {
+      cout << "Person 2's building not found" << endl;
+    } else {
+      cout << endl;
+      cout << "Person 1's point:" << endl;
+      cout << " " << p1.name << endl;
+      cout << " " << p1.id << endl;
+      cout << " (" << p1.location.lat << ", " << p1.location.lon << ")" << endl;
+      cout << "Person 2's point:" << endl;
+      cout << " " << p2.name << endl;
+      cout << " " << p2.id << endl;
+      cout << " (" << p2.location.lon << ", " << p2.location.lon << ")" << endl;
+
+      Coordinates centerCoords = centerBetween2Points(p1.location, p2.location);
+      BuildingInfo dest = getClosestBuilding(buildings, centerCoords);
+
+      cout << "Destination Building:" << endl;
+      cout << " " << dest.name << endl;
+      cout << " " << dest.id << endl;
+      cout << " (" << dest.location.lat << ", " << dest.location.lon << ")"
+           << endl;
+
+      vector<long long> P1Path = dijkstra(G, p1.id, dest.id, buildingNodes);
+      vector<long long> P2Path = dijkstra(G, p2.id, dest.id, buildingNodes);
+
+      // This should NEVER happen with how the graph is built
+      if (P1Path.empty() || P2Path.empty()) {
+        cout << endl;
+        cout << "At least one person was unable to reach the destination "
+                "building. Is an edge missing?"
+             << endl;
+        cout << endl;
+      } else {
+        cout << endl;
+        cout << "Person 1's distance to dest: " << pathLength(G, P1Path);
+        cout << " miles" << endl;
+        cout << "Path: ";
+        outputPath(P1Path);
+        cout << endl;
+        cout << "Person 2's distance to dest: " << pathLength(G, P2Path);
+        cout << " miles" << endl;
+        cout << "Path: ";
+        outputPath(P2Path);
+      }
+    }
+
+    //
+    // another navigation?
+    //
+    cout << endl;
+    cout << "Enter person 1's building (partial name or abbreviation), or #> ";
+    getline(cin, person1Building);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//json.hpp file code(lines 1 to 99) below: here is the link for download: https://github.com/nlohmann/json/releases/latest/download/json.hpp
+//     __ _____ _____ _____
+//  __|  |   __|     |   | |  JSON for Modern C++
+// |  |  |__   |  |  | | | |  version 3.12.0
+// |_____|_____|_____|_|___|  https://github.com/nlohmann/json
+//
+// SPDX-FileCopyrightText: 2013 - 2025 Niels Lohmann <https://nlohmann.me>
+// SPDX-License-Identifier: MIT
+
+/****************************************************************************\
+ * Note on documentation: The source files contain links to the online      *
+ * documentation of the public API at https://json.nlohmann.me. This URL    *
+ * contains the most recent documentation and should also be applicable to  *
+ * previous versions; documentation for deprecated functions is not         *
+ * removed, but marked deprecated. See "Generate documentation" section in  *
+ * file docs/README.md.                                                     *
+\****************************************************************************/
+
+#ifndef INCLUDE_NLOHMANN_JSON_HPP_
+#define INCLUDE_NLOHMANN_JSON_HPP_
+
+#include <algorithm> // all_of, find, for_each
+#include <cstddef> // nullptr_t, ptrdiff_t, size_t
+#include <functional> // hash, less
+#include <initializer_list> // initializer_list
+#ifndef JSON_NO_IO
+    #include <iosfwd> // istream, ostream
+#endif  // JSON_NO_IO
+#include <iterator> // random_access_iterator_tag
+#include <memory> // unique_ptr
+#include <string> // string, stoi, to_string
+#include <utility> // declval, forward, move, pair, swap
+#include <vector> // vector
+
+// #include <nlohmann/adl_serializer.hpp>
+//     __ _____ _____ _____
+//  __|  |   __|     |   | |  JSON for Modern C++
+// |  |  |__   |  |  | | | |  version 3.12.0
+// |_____|_____|_____|_|___|  https://github.com/nlohmann/json
+//
+// SPDX-FileCopyrightText: 2013 - 2025 Niels Lohmann <https://nlohmann.me>
+// SPDX-License-Identifier: MIT
+
+
+
+#include <utility>
+
+// #include <nlohmann/detail/abi_macros.hpp>
+//     __ _____ _____ _____
+//  __|  |   __|     |   | |  JSON for Modern C++
+// |  |  |__   |  |  | | | |  version 3.12.0
+// |_____|_____|_____|_|___|  https://github.com/nlohmann/json
+//
+// SPDX-FileCopyrightText: 2013 - 2025 Niels Lohmann <https://nlohmann.me>
+// SPDX-License-Identifier: MIT
+
+
+
+// This file contains all macro definitions affecting or depending on the ABI
+
+#ifndef JSON_SKIP_LIBRARY_VERSION_CHECK
+    #if defined(NLOHMANN_JSON_VERSION_MAJOR) && defined(NLOHMANN_JSON_VERSION_MINOR) && defined(NLOHMANN_JSON_VERSION_PATCH)
+        #if NLOHMANN_JSON_VERSION_MAJOR != 3 || NLOHMANN_JSON_VERSION_MINOR != 12 || NLOHMANN_JSON_VERSION_PATCH != 0
+            #warning "Already included a different version of the library!"
+        #endif
+    #endif
+#endif
+
+#define NLOHMANN_JSON_VERSION_MAJOR 3   // NOLINT(modernize-macro-to-enum)
+#define NLOHMANN_JSON_VERSION_MINOR 12  // NOLINT(modernize-macro-to-enum)
+#define NLOHMANN_JSON_VERSION_PATCH 0   // NOLINT(modernize-macro-to-enum)
+
+#ifndef JSON_DIAGNOSTICS
+    #define JSON_DIAGNOSTICS 0
+#endif
+
+#ifndef JSON_DIAGNOSTIC_POSITIONS
+    #define JSON_DIAGNOSTIC_POSITIONS 0
+#endif
+
+#ifndef JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON
+    #define JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON 0
+#endif
+
+#if JSON_DIAGNOSTICS
+    #define NLOHMANN_JSON_ABI_TAG_DIAGNOSTICS _diag
+#else
+    #define NLOHMANN_JSON_ABI_TAG_DIAGNOSTICS
+#endif
+
+#if JSON_DIAGNOSTIC_POSITIONS
+    #define NLOHMANN_JSON_ABI_TAG_DIAGNOSTIC_POSITIONS _dp
+#else
+    #define NLOHMANN_JSON_ABI_TAG_DIAGNOSTIC_POSITIONS
+#endif
+
+#if JSON_USE_LEGACY_DISCARDED_VALUE_COMPARISON
+    #define NLOHMANN_JSON_ABI_TAG_LEGACY_DISCARDED_VALUE_COMPARISON _ldvcmp
