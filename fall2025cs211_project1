@@ -1,3 +1,15 @@
+//This File included other files as well
+/*Project Description:  OTHER FILES WERE INCLUDED IN PROJECT BUT ONLY MAIN IS PRESENT HERE
+The purpose of this project is for building a totalistic cellular automation, which is 
+basically a row of cell that will change over time depending on simple rules like for 
+the sum of the states of it's neighboring cells. Each cell in this project has the value 
+of 0, 1, or 2, and it's next state will depend on the sum of itself as well as its two 
+neighbors. A rule number that is between 0 and 2186 will define how every possible sum
+will map to a new value. The user will choose how many generations to evolve as well as 
+the starting value to place in the middle cell in order for the program to show the world 
+evolving. Finally, the program will totally show how active each cell was across all the generations. 
+*/
+
 //Totalistic Cellular Automaton
 
 #include <stdio.h>
