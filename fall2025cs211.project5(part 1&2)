@@ -1,0 +1,2267 @@
+//This file includes project 5 part 1(has 2 files called: "EscapeTheLabyrinth.h" and "grid.h") and part 2(has 3 files: "gameboard.h", "boardcell.h", and "grid.h"(from part 1))
+
+//***Below is part 1: "EscapeTheLabyrinth.h"
+#include <utility>
+#include <random>
+#include <set>
+#include "grid.h"
+#include "maze.h"
+using namespace std;
+
+/* Change constant kYourNetID to store your netID ////////
+ *    - your submission will be manually inspected to ensure
+ *      you have used the exact string that is your netID
+ *    - thus, it is vital you understand what your netID is
+ *    - ex: Professor Reckinger's email is scotreck@uic.edu, so
+ *          Professor Reckinger's netID is scotreck     
+ *    - ex: Student Sparky's email is sspark211@uic.edu, so
+ *          Student Sparky's netID is sspark211 
+ * WARNING: Once you've set set this constant and started 
+ * exploring your maze, do NOT edit the value of kYourNetID. 
+ * Changing kYourNetID will change which maze you get back, 
+ * which might invalidate all your hard work!
+
+ */
+const string kYourNetID = "apanc2";
+
+/* Change these constants to contain the paths out of your mazes. */
+//middle is nnn(in order i got it is wand, potion, spellbook)
+const string kPathOutOfRegularMaze = "SESESNNESSNNNSWSSNNEWSWSWENEWNWNSSNENE";
+const string kPathOutOfTwistyMaze = "NNWNESESNNEENEENSS";
+
+bool isPathToFreedom(MazeCell *start, const string& moves) {
+    
+    
+    //will delete the code from before as it told me to
+    //will check if the starting is null
+    if(start== nullptr)
+    {
+        //will then return false;
+        return false;
+
+    }
+
+    //will create boolean has boolean variables for the spellbook, potion, and wand
+    bool theHasSpellbook = false;
+    //will create for potion and will change later
+    bool theHasPotion =false;
+    //will be the wand and set it to false first
+    bool theHasWand =false;
+
+
+    //will be for the current point
+    MazeCell* theCurr =start;
+
+    //will check if the starting cell has already an itemm
+    //will first check if whatshere is equal to spell book
+    if(theCurr->whatsHere=="Spellbook")
+    {
+        //will then set the spellbook to true
+        theHasSpellbook =true;
+    }
+    //will check if the whatsHere is potion
+    if(theCurr->whatsHere=="Potion")
+    {
+        //will set the potion to true;
+        theHasPotion= true;
+    }
+    //will check if the whatshere is equal to wand
+    if(theCurr->whatsHere=="Wand")
+    {
+        //will set it to true;
+        theHasWand= true;
+    }
+    
+    //will now follow each of the step in the moves strings and checn its direction
+    //will create variable element for each element of moves and create for loop
+    for(char aMove: moves)
+    {
+        //will be if the aMove is 'N' which will stand for north
+        if(aMove== 'N')
+        {
+            //will check if the north of current is nullptr)
+            if(theCurr->north ==nullptr)
+            {
+                //will then return false;
+                return false;
+            }
+            //will then set theCurr to the north after if the if statement is false above
+            theCurr= theCurr->north;
+        }
+
+        //will check if the aMove is S for south
+        else if(aMove=='S')
+        {
+            //will check if the south of current is null
+            if(theCurr->south==nullptr)
+            {
+                //will return to false
+                return false;
+            }
+            //if not, will the the current to south
+            theCurr=theCurr->south;
+        }
+
+        //will check if the aMove is E which stands for east
+        else if(aMove== 'E')
+        {
+            //will check if the east current is nullptr
+            if(theCurr->east== nullptr)
+            {
+                //will then return false if so
+                return false;
+            }
+            //will set the current to east if the statement above is not true
+            theCurr= theCurr->east;
+        }
+
+        //will check if the aMove is W for west lastly
+        else if(aMove == 'W')
+        {
+            //will check if the west of current is to null pointer
+            if(theCurr->west ==nullptr)
+            {
+                //will return false f above statement is true 
+                return false;
+            }
+            //will lastly set the current to west
+            theCurr =theCurr->west;
+        }
+
+        //will be for if the statements if all false and for anything else
+        else
+        {
+            //will lastly be for if invalid characters inside aMove are  false, will return false 
+            return false;
+        }
+
+        //will be for colelcting the item elements if it lands on them
+        //will check if the whatshere is spellbook
+        if(theCurr->whatsHere== "Spellbook")
+        {
+            //will set the spell book to true
+            theHasSpellbook =true;
+        }
+        //will check if the whatshere is equal to potion
+        if(theCurr->whatsHere== "Potion")
+        {
+            //will set the potion to true if above staement is valid
+            theHasPotion= true;
+        }
+        //will check if the whatshere is equal to wand and set that want variable to true
+        if(theCurr->whatsHere == "Wand")
+        {
+            //finally will set the wand to true
+            theHasWand= true;
+        }
+    }
+
+
+
+
+    //will lastly be return only if program has all 3 items like spellbook, potion and wand, and to true
+    return (theHasSpellbook &&theHasPotion && theHasWand);
+    
+}
+
+
+
+
+
+//***Below is part 1: "grid.h"
+//-------------------------------------------------
+// TODO:  Write file header.
+//-------------------------------------------------
+/*
+, 11/29/25, CS211, lab thurs 12pm, project 5 part 1
+project description:This project is basically about creating a Grid class which
+can hold a table of any type of data like numbers or letters. I can make a grid of
+any size I wanted or uses a 4x4 grid while each spot will start with a default value.
+The grid should copy itself safely so that I can make new gris from old ones wthout
+mixing them each up. You can get or change any element using row and column numbers.
+The grid can keep track of how many rows and columns it has. It also can clean up
+memory when the person is done so that the computer does not waste any space.
+*/
+
+//-------------------------------------------------
+// TODO:  Update the member function comments in 
+//        your own style.
+//-------------------------------------------------
+/*
+comments will be below
+*/
+
+#pragma once
+
+#include <iostream>
+#include <exception>
+#include <stdexcept>
+#include <algorithm>
+
+using namespace std;
+
+template<typename T>
+class Grid {
+private:
+  struct ROW {
+    T*  Cols;     // array of column elements
+    size_t NumCols;  // total # of columns (0..NumCols-1)
+  };
+
+  ROW* Rows;     // array of ROWs
+  size_t  NumRows;  // total # of rows (0..NumRows-1)
+    
+public:
+  //
+  // default constructor:
+  //
+  // Called automatically by to construct a 4x4 Grid. 
+  // All elements initialized to default value of T.
+  //
+
+  //will basically build grid with 4 rows/ columns and every spot starts as default value of T
+
+  Grid() {
+    Rows = new ROW[4];  // 4 rows
+    NumRows = 4;
+
+    // initialize each row to have 4 columns:
+    for (size_t r = 0; r < NumRows; ++r) {
+      Rows[r].Cols = new T[4];
+      Rows[r].NumCols = 4;
+
+      // initialize the elements to their default value:
+      for (size_t c = 0; c < Rows[r].NumCols; ++c) {
+        Rows[r].Cols[c] = T();  // default value for type T:
+      }
+    }
+  }
+
+  //
+  // parameterized constructor:
+  //
+  // Called automatically to construct a Grid 
+  // with R rows, where each row has C columns. 
+  // All elements initialized to default value of T.
+  //
+
+  //will basically make a grid with number of rows=R and num of columns row=C, each element starts with value of T
+  Grid(size_t R, size_t C) {
+    //-------------------------------------------------
+    // TODO:  Write this parameterized constructor.
+    //-------------------------------------------------
+
+    //will check make empty grid if size is not valid, to avoid error
+    if(R==0 || C==0)
+    {
+        //will set num to 0
+        NumRows = 0;
+        //will set rows to null
+        Rows= nullptr;
+        //will then return
+        return;
+    }
+
+    ////wll for allocating rows arrays of size R and setting NumRows to r
+    //will be for setting the NumRows 
+    NumRows =R;
+    //will be for creating new ROW using the Rows
+    Rows= new ROW[R];
+
+    //will then loop through the R using size_t for it can store any large number
+    for(size_t rowrow=0; rowrow<R; rowrow++)
+    {
+        //will set the columns to new T
+        Rows[rowrow].Cols =new T[C];
+        //will set the NumCols to c
+        Rows[rowrow].NumCols= C;
+
+        //will loop through the C  using size_t so it can store any big num
+        for(size_t smallerC=0; smallerC<C; smallerC++)
+        {
+            //will set the rows and columns to T();
+            Rows[rowrow].Cols[smallerC] =T();
+        }
+    }
+  }
+    
+  //
+  // destructor:
+  //
+  // Called automatically to free memory for this Grid.
+  //
+
+  //will just free all the memory that has created with "new" and delete every row columns, delete the row list
+  virtual ~Grid() {
+
+      //-------------------------------------------------
+      // TODO:  Write this destructor.
+      //-------------------------------------------------
+
+
+    //will check if the Rows is not null pointer
+    if(Rows !=nullptr)
+    {
+        //will the loop through NumRows using size_t for any big number
+        for(size_t row=0; row<NumRows; row=row+1)
+        {
+            //will then delete that element for column
+            delete[] Rows[row].Cols;
+        }
+
+        //will delete that rows as well 
+        delete[] Rows;
+    }
+  }
+
+
+  //
+  // copy constructor:
+  //
+  // Called automatically to construct a Grid that contains a
+  // copy of an existing Grid.  Example: this occurs when passing
+  // Grid as a parameter by value
+  //
+  //   void somefunction(Grid<int> G2)  <--- G2 is a copy:
+  //   { ... }
+  //
+
+  //this will basically make new grid that is copy of another, all rows/columns are rebuilt, and basically be "deep copy"
+  Grid(const Grid<T>& other) {
+      
+      //-------------------------------------------------
+      // TODO:  Write this copy constructor.
+      //-------------------------------------------------
+
+    //will check if other grid is empty
+    if(other.Rows==nullptr || other.NumRows==0)
+    {
+        //will set the NumRows to 0
+        NumRows = 0;
+        //will set the rows
+        Rows= nullptr;
+        //will then return finally
+        return;
+    }
+
+
+    //will set the NumRows to the NumRows other
+    NumRows =other.NumRows;
+    //will then create new ROW of Rows
+    Rows= new ROW[NumRows];
+
+    //will then loop through the numrows using the size_t to store any big num
+    for(size_t row=0; row<NumRows; row++)
+    {
+        //will set the row element of rows to other
+        Rows[row].NumCols =other.Rows[row].NumCols;
+        //will set the cols of rows to new T
+        Rows[row].Cols = new T[Rows[row].NumCols];
+
+        //will then loop through the Numcols of the r element of Rows
+        for(size_t col=0; col<Rows[row].NumCols; col++)
+        {
+            //will set the Cols of rows to other.rows.cols
+            Rows[row].Cols[col] =other.Rows[row].Cols[col];
+        }
+    }
+  }
+    
+  //
+  // copy operator=
+  //
+  // Called when one Grid is assigned into another, i.e. this = other;
+  //
+
+  //will let program write grid1=grid2, delete old grid, copies all rows/columns from other grid(deep copy again)
+  Grid& operator=(const Grid& other) {
+    //   Grid<T> temp;
+      
+      //-------------------------------------------------
+      // TODO:  Write this copy operator.
+      //-------------------------------------------------
+
+      //wll check if the this is equal to the address of other
+      if(this== &other)
+      {
+        //will return this 
+        return *this;
+      }
+
+      //will then free the memory to avoid leaks
+      //will check if Rows is not nullptr
+      if(Rows!=nullptr)
+      {
+        for(size_t r=0; r<NumRows; r=r+1)
+        {
+            //will delete the Cols of Rows
+            delete[] Rows[r].Cols;
+        }
+        //will then delete that rows
+        delete[] Rows;
+      }
+
+      //will check if other is empty for avoiding errors
+      if(other.Rows==nullptr || other.NumRows==0)
+      {
+        //will set the NumRows, Rows and reutrn this*
+        NumRows=0;
+        Rows=nullptr;
+        return *this;
+      }
+
+      //will make new memoery for the NumRows and Rows
+      NumRows =other.NumRows;
+      //will be for the new ROW
+      Rows= new ROW[NumRows];
+
+      //will loop through the NumRows using size_t for it to store any big num
+      for(size_t row=0; row<NumRows; row++)
+      {
+        //will set the NumCols to other Numscols
+        Rows[row].NumCols = other.Rows[row].NumCols;
+        //will set the Cols to new T
+        Rows[row].Cols =new T[Rows[row].NumCols];
+
+        //wil then loop through the NumCols of rows inside Rows
+        for(size_t c=0; c<Rows[row].NumCols; c++)
+        {
+            //will set the c insdie cols inside row of Rows to other
+            Rows[row].Cols[c] = other.Rows[row].Cols[c];
+        }
+      }
+
+    //will then return *this at the end finally
+    return *this;  // TODO: update this, it is only here so code compiles.
+      
+  }
+
+  //
+  // numrows
+  //
+  // Returns the # of rows in the Grid.  
+  // The indices for these rows are 0..numrows-1.
+  //
+
+  //will just return how many rows the grid has 
+  size_t numrows() const {
+      
+    //-------------------------------------------------
+    // TODO:  Write this function.
+    //-------------------------------------------------
+        
+    //wil then return the NumRows
+    return NumRows;  // TODO:  update this, it is only here so code compiles.
+  }
+  
+
+  //
+  // numcols
+  //
+  // Returns the # of columns in row r.  
+  // The indices for these columns are 0..numcols-1.  
+  // For now, each row has the same number of columns.
+  //
+
+  //will return amount of columns row r has, and where all rows have the same num of columns 
+  size_t numcols(size_t r) const {
+      
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+        //will be if the rows are null and numrows is 0
+        if(Rows==nullptr || NumRows==0)
+        {
+            //will return 0
+            return 0;
+        }
+        //will check if r is greater or equal to NumRows
+        if(r>= NumRows)
+        {
+            //will return 0 to continue
+            return 0;
+        }
+
+      //will be for return the NumCols of Rows element
+      return Rows[r].NumCols;  // TODO: update this, it is only here so code compiles.
+
+  }
+
+
+  //
+  // size
+  //
+  // Returns the total # of elements in the Grid.
+  //
+
+  //will return amount of total elements in the grid lke example: a 4x4 grid wll have 16 elements
+  size_t size() const {
+      
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+    
+      //will store the total using size_t so it can hold any big num
+      size_t theTotal=0;
+
+
+      //will check if the NumRows is 0 or if NumRows is 0
+      if(Rows== nullptr || NumRows==0)
+      {
+        //will retrun 0 and continue the program
+        return 0;
+      }
+      
+      //will loop thorugh numrows and add to total size 
+      for(size_t row=0; row<NumRows; row++)
+      {
+        theTotal += Rows[row].NumCols;
+      }
+
+      //will return the NumRows times the NumCols at index 0 of Rows
+      return theTotal;  // TODO: update this, it is only here so code compiles.
+  }
+
+
+  //
+  // ()
+  //
+  // Returns a reference to the element at location (r, c);
+  // this allows you to access or assign the element:
+  //
+  //    grid(r, c) = ...
+  //    cout << grid(r, c) << endl;
+  //
+
+  //will let me get a grid spot using the parenthesis example is: grid(r,c)=10; cout<<grid(r,c);
+  T& operator()(size_t r, size_t c) {
+    //   T temp;
+      
+    
+      //-------------------------------------------------
+      // TODO:  Write the parentheses overloaded operator
+      //-------------------------------------------------
+
+
+    // will be for edge case and check if r>=NumRows  or if c>=NuCols of c[r]
+    if(r>=NumRows || c>=Rows[r].NumCols)
+    {
+        //will use this so i do not get error message, this was from week 15 in class covered out of range topic 
+        throw out_of_range("Grid indices out of range");
+    }
+
+
+     //will then return the element c element of Cols of r element of Rows
+      return Rows[r].Cols[c];  // TODO: update this, it is only here so code compiles.
+  }
+
+  //
+  // _output
+  //
+  // Outputs the contents of the grid; for debugging purposes.  
+  // This is not tested.
+  //
+
+  //will just print the entire grid to screen and mainly for debugging or checking the code purposes
+  void _output() {
+
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+
+      //will loop through the NumRows using size_t for it to store any big number
+      for(size_t row=0; row<NumRows; row++)
+      {
+        //will then loop through the NumCols of r element of Rows
+        for(size_t col =0; col<Rows[row].NumCols; col=col+1)
+        {
+            //will then print that element inside rows and Cols
+            cout <<Rows[row].Cols[col] <<" ";
+        }
+
+        //will print the newline to avod errors
+        cout << endl;
+      }
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//***Below is part 2: "gameboard.h"
+// gameboard.h
+//
+// GameBoard class starter code for course project
+// University of Illinois at Chicago
+// CS 211 - Programming Practicum
+// Original Author: Professor Scott Reckinger
+
+//will be the header for this project 5 part 2 
+/*
+
+description:This project will basically be a maze game where a Hero will move 
+around a board that is filled with things like walls, monsters, bats, holes and 
+even an exit ladder. The Hero can move up, down, left, right, and cannot go 
+through the walls and move off the board. The monsters and bats also can move 
+around the board and can harm the Hero if they land on same space. The goal of 
+this project if for the Hero to reach the exit ladder without falling into holes
+or enemies. The game also uses a grid of cells that is showed by different objects
+and can handle the movement or collisions using the code to check for out of bounds
+errors and other errors.
+*/
+
+
+
+#ifndef _GAMEBOARD_H
+#define _GAMEBOARD_H
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <ctime>
+#include <stdexcept>
+
+#include "boardcell.h"
+#include "grid.h"
+
+using namespace std;
+
+class GameBoard {
+	private: 
+	    Grid<BoardCell*> board;
+        size_t numRows;
+        size_t numCols;
+        size_t HeroRow; // Hero's position row
+	    size_t HeroCol; // Hero's position column
+        int numMonsters;
+        int numSuperMonsters;
+        int numAbysses;
+        int numBats;
+        bool wonGame; // false, unless the Hero reached the exit successfully
+
+		
+	public: 
+		/* default constructor */
+        GameBoard() {
+            numMonsters = 4;
+            numSuperMonsters = 2;
+            numAbysses = 50;
+            numBats = 2;
+            wonGame = false;
+            
+            this -> numRows = 15;
+            this -> numCols = 40;
+            
+            Grid<BoardCell*> boardnew(numRows, numCols);
+            board = boardnew;
+            
+            blankBoard();
+        }
+        
+        /* param constructor */
+        GameBoard(size_t numRows, size_t numCols) {
+            numMonsters = 4;
+            numSuperMonsters = 2;
+            numAbysses = 20;
+            numBats = 3;
+            wonGame = false;
+            
+            this -> numRows = numRows;
+            this -> numCols = numCols;
+            
+            Grid<BoardCell*> boardnew(numRows, numCols);
+            board = boardnew;
+            
+            blankBoard();
+        }
+        
+        /* destructor */
+        virtual ~GameBoard() {
+            for (size_t row = 0; row < board.numrows(); row++) {
+                for (size_t col = 0; col < board.numcols(row); col++) {
+                    delete board(row, col);
+                }
+            }
+        }
+
+        void blankBoard() {
+            for (size_t row = 0; row < board.numrows(); row++) {
+                for (size_t col = 0; col < board.numcols(row); col++) {
+                    board(row, col) = new Nothing(row,col);
+                }
+            }
+        }
+
+        char getCellDisplay(size_t r, size_t c) {
+            return board(r,c)->display();
+        }
+
+        void setCell(BoardCell* myCell, size_t r, size_t c) {
+            board(r,c) = myCell;
+        }
+    
+        void freeCell(size_t r, size_t c) {
+            delete board(r,c);
+        }
+
+        // fills board with by randomly placing...
+        //  - Hero (H) in the first three columns
+        //  - EscapeLadder (*) in last three columns
+        //  - 3 vertical Walls (+), each 1/2 of board height, in middle segment
+        //  - Abyss cells (#), quantity set by numAbysses, in middle segment
+        //  - Baddies [Monsters (m), Super Monsters (M), & Bats (~)] in middle segment;
+        //    number of Baddies set by numMonsters, numSuperMonsters, & numBats
+        void setupBoard(int seed) {
+            srand(seed);
+            size_t r,c;
+
+            r = rand() % numRows;
+            c = rand() % 3;
+            delete board(r,c);
+            board(r,c) = new Hero(r,c);
+            HeroRow = r;
+            HeroCol = c;
+
+            r = rand() % numRows;
+            c = numCols - 1 - (rand() % 3);
+            delete board(r,c);
+            board(r,c) = new EscapeLadder(r,c);
+            
+            int sizeMid = numCols - 6;
+
+            c = 3 + (rand() % sizeMid);
+            for (r = 0; r < numRows/2; ++r) {
+                delete board(r,c);
+                board(r,c) = new Wall(r,c);
+            }
+            size_t topc = c;
+
+            while (c == topc || c == topc-1 || c == topc+1) {
+                c = 3 + (rand() % sizeMid);
+            }
+            for (r = numRows-1; r > numRows/2; --r) {
+                delete board(r,c);
+                board(r,c) = new Wall(r,c);           
+            }
+            size_t botc = c;
+
+            while (c == topc || c == topc-1 || c == topc+1 || c == botc || c == botc-1 || c == botc+1) {
+                c = 3 + (rand() % sizeMid);
+            }
+            for (r = numRows/4; r < 3*numRows/4; ++r) {
+                delete board(r,c);
+                board(r,c) = new Wall(r,c);
+            }
+
+            for (int i = 0; i < numMonsters; ++i) {
+                r = rand() % numRows;
+                c = 3 + (rand() % sizeMid);
+                while (board(r,c)->display() != ' ') {
+                    r = rand() % numRows;
+                    c = 3 + (rand() % sizeMid);
+                }
+                delete board(r,c);
+                board(r,c) = new Monster(r,c);  
+                board(r,c)->setPower(1);        
+            }
+
+            for (int i = 0; i < numSuperMonsters; ++i) {
+                r = rand() % numRows;
+                c = 3 + (rand() % sizeMid);
+                while (board(r,c)->display() != ' ') {
+                    r = rand() % numRows;
+                    c = 3 + (rand() % sizeMid);
+                }
+                delete board(r,c);
+                board(r,c) = new Monster(r,c); 
+                board(r,c)->setPower(2);               
+            }
+
+            for (int i = 0; i < numBats; ++i) {
+                r = rand() % numRows;
+                c = 3 + (rand() % sizeMid);
+                while (board(r,c)->display() != ' ') {
+                    r = rand() % numRows;
+                    c = 3 + (rand() % sizeMid);
+                }
+                delete board(r,c);
+                board(r,c) = new Bat(r,c); 
+            }
+
+            for (int i = 0; i < numAbysses; ++i) {
+                r = rand() % numRows;
+                c = 3 + (rand() % sizeMid);
+                while (board(r,c)->display() != ' ') {
+                    r = rand() % numRows;
+                    c = 3 + (rand() % sizeMid);
+                }
+                delete board(r,c);
+                board(r,c) = new Abyss(r,c);              
+            }
+        }
+
+        // neatly displaying the game board 
+		void display( ) {
+            cout << '-';
+            for (size_t col = 0; col < board.numcols(0); col++) {
+                cout << '-';
+            }
+            cout << '-';
+            cout << endl;
+            for (size_t row = 0; row < board.numrows(); row++) {
+                cout << '|';
+                for (size_t col = 0; col < board.numcols(row); col++) {
+                    cout << board(row,col)->display();
+                }
+                cout << '|';
+                cout << endl;
+            }
+            cout << '-';
+            for (size_t col = 0; col < board.numcols(0); col++) {
+                cout << '-';
+            }
+            cout << '-';
+            cout << endl;
+            
+        }
+		
+        bool getWonGame() {
+            return wonGame;
+        }
+        
+        // distributing total number of monsters so that 
+        //  ~1/3 of num are Super Monsters (M), and
+        //  ~2/3 of num are Regular Monsters (m)
+        void setNumMonsters(int num) {
+            numSuperMonsters = num/3;
+            numMonsters = num - numSuperMonsters;
+        }
+
+        void setNumAbysses(int num) {
+            numAbysses = num;
+        }
+
+        void setNumBats(int num) {
+            numBats = num;
+        }
+
+        size_t getNumRows() {
+            return numRows;
+        }
+
+        size_t getNumCols() {
+            return numCols;
+        }
+
+        
+        //---------------------------------------------------------------------------------
+        // void getHeroPosition(size_t& row, size_t& col)
+        //
+        // getter for Hero's position, which are private data members
+        //      int HeroRow;
+	    //      int HeroCol;
+        // note: row and col are passed-by-reference
+        //---------------------------------------------------------------------------------
+        void getHeroPosition(size_t& row, size_t& col) {
+            
+            //---------------------------------
+            // TODO: write this getter function
+            //---------------------------------
+
+            // row = 0;  // modify/remove this line
+            // col = 0;  // modify/remove this line
+
+            //will set the row to the HeroRow
+            row=HeroRow;
+            //will set the column to the col of hero
+            col = HeroCol;
+        }
+
+        
+        //---------------------------------------------------------------------------------
+        // void setHeroPosition(size_t row, size_t col)
+        //
+        // setter for Hero's position, which are private data members
+        //      int HeroRow;
+	    //      int HeroCol;
+        //---------------------------------------------------------------------------------
+        void setHeroPosition(size_t row, size_t col) {
+            
+            //---------------------------------
+            // TODO: write this setter function
+            //---------------------------------
+
+            //will set the row of hero to row
+            HeroRow = row;
+            //will set the col to the Hero column 
+            HeroCol = col;
+
+        
+        }
+
+        
+        //---------------------------------------------------------------------------------
+        // findHero()
+        //
+        // updater for Hero's position, which are private data members
+        //      int HeroRow;
+	    //      int HeroCol;
+        // this function should find Hero in board and update
+        //      HeroRow and HeroCol with the Hero's updated position;
+        // if Hero cannot be found in board, then set Hero's position to (-1,-1)
+        //---------------------------------------------------------------------------------
+        void findHero() {
+            
+            //----------------------------------
+            // TODO: write this updater function
+            //----------------------------------
+
+            //will be searching all the row and columns using size_t to store any big number 
+            for(size_t row=0; row<numRows;row++)
+            {
+                //will be for the num columns using size_t to avoid leaks 
+                for(size_t c=0; c<numCols; c++)
+                {
+                    //will check if the object inside board position as (r,c) is the Hero, it will call its isHero function for boolean t/f
+                    if(board(row,c)->isHero())
+                    {
+                        //will set the position using the setHeropostion()
+                        setHeroPosition(row,c);
+                        //will return so program continues 
+                        return;
+                    }
+                }
+            }
+
+            //will for being treated as it is removed or dead when the hero is not found on the board 
+            //will set the heroRow and use size_t to avoid errors, wil minus 1
+            HeroRow= (size_t)-1;
+            //will set the column of hero using size_t, will subtract by 1
+            HeroCol = (size_t)-1;
+        
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        //---------------------------------------------------------------------------------
+        //  makeMoves(char HeroNextMove)
+        // 
+        // This is the primary gameplay operation for a single round of the game. 
+        // A LOT happens in this function... 
+        // General steps:
+        //  - Allow user to input their next move 
+        //  - Get the attempted move position for the Hero
+        //  - Move the hero, catching/resolving any potential collision exceptions...
+        //      - attempted move out-of-bounds: change row &/or col to stay on board
+        //      - attempted move into a barrier: change row &/or col to stay off barrier
+        //      - attempted move to the exit: remove hero from board, hero escaped!
+        //      - attempted move into a hole: remove hero from board, hero did not escape
+        //      - attempted move to a baddie: remove hero from board, hero did not escape
+        //      - attempted move to an empty space: actual move is the attempted move
+        //  - For each baddie (regular Monster, super Monster, or Bat) on the board...
+        //      - check that this baddies hasn't already moved this round
+        //      - get its attempted move position
+        //      - move the baddie, catching/resolving any potential collision exceptions...
+        //          - attempted move out-of-bounds: change row &/or col to stay on board
+        //          - attempted move into a barrier: change row &/or col to stay off barrier
+        //          - attempted move to the exit: change row &/or col to stay off exit
+        //          - attempted move into a hole: remove baddie from board
+        //          - attempted move to hero: remove hero from board, hero did not escape
+        //          - attempted move to a baddie: ignore attempted move, no position change
+        //          - attempted move to an empty space: actual move is the attempted move 
+        // 
+        // Note: all baddies (and the hero) fall into holes if their attempted 
+        //       move ENDs on a hole (i.e. even Bats are drawn into the 
+        //       Abyss if their attempted move takes them to an Abyss cell); 
+        //       BUT, baddies can travel over holes, as long as their attempted 
+        //       move does NOT END on a hole; this only applies, in practice, 
+        //       to super monsters and bats, since their step sizes can be more 
+        //       than 1 (monsters and the hero are limited to steps of size 1)
+        //
+        // Note: also, whereas baddies (and the hero) can never move onto a 
+        //       barrier (i.e. a wall), they can step over barriers as long
+        //       as the attempted move does NOT END on a barrier; this only 
+        //       applies, in practice, to super monsters and bats, since their 
+        //       step sizes can be more than 1 (monsters and the hero are limited 
+        //       to steps of size 1)
+        //
+        // Note: to prevent a single baddie from making multiple moves
+        //       during a single round of the game, whenever a baddie 
+        //       has moved, it should be marked as "already moved" in 
+        //       some way; this can be done using the [moved] data member
+        //       of the BoardCell base class, which has setter/getter 
+        //       functions provided. The [moved] data members must be 
+        //       reset for all BoardCells at the beginning of each round.
+        //
+        // Note: the [myRow] and [myCol] data members for BoardCell derived
+        //       class objects must be updated whenever a move is made; 
+        //       additionally, [HeroRow] and [HeroCol] data members for the 
+        //       GameBoard must be updated whenever the Hero has moved, 
+        //       which can be done easily with a call to findHero()
+        //
+        // Note: many actual moves made by non-static board cell objects 
+        //       (i.e. Heros, Monsters, Bats) involve constructing and/or 
+        //       destructing objects; be careful with memory management; 
+        //       specifically, make sure to free (delete) the memory for 
+        //       BoardCell derived class objects when you are done with it
+        //
+        // return true if Hero is still on board at the end of the round
+        // return false if Hero is NOT on board at the end of the round
+        //---------------------------------------------------------------------------------
+        bool makeMoves(char HeroNextMove) {
+            //-----------------------------------
+            // TODO: write this gameplay function
+            //-----------------------------------
+            //
+            // this function should use some try/catch statements for handling collision exceptions;
+            // some sample code is provided to get you started...
+
+            //will reset all of the "moved" flags for this round 
+            //will loop through the numRows using size_t data type to avoid error 
+            for(size_t row=0; row<board.numrows(); row++)
+            {
+                //will loop through the numCols 
+                for(size_t c=0; c<board.numcols(row); c++)
+                {
+                    //will set the rows and columns of board to setMoved false
+                    board(row, c)->setMoved(false);
+                }
+            }
+            //will retrun false if the hero is gone  
+            if(HeroRow==(size_t)-1 || HeroCol==(size_t)-1)
+            {
+                //will return false;
+                return false;
+            }
+
+            // //will also get hero cell and propose move  
+            // BoardCell* heroCell = board(HeroRow, HeroCol);
+            // determine where hero proposes to move to
+            //will be for the HERO MOVEMENT THIS code  was already written 
+            size_t newR, newC;
+            board(HeroRow,HeroCol)->setNextMove(HeroNextMove);
+            board(HeroRow,HeroCol)->attemptMoveTo(newR,newC,HeroRow,HeroCol);
+            
+            
+
+
+
+
+            //use the try 
+            try{
+                //wiil basicall check if newR is greater or equal to numRows, if newR is invalid, same thing for newColumn side 
+                if(newR>=numRows || newR==(size_t)-1 || newC>=numCols || newC==(size_t)-1)
+                {
+                    //will be runtime error 
+                    throw runtime_error("Hero attempted out-of-bounds");
+                }
+            }
+            //will use catch 
+            catch(runtime_error&)
+            {
+                //wll check if newR is >= to numRows or if its invalid 
+                if(newR>=numRows || newR==(size_t)-1)
+                {
+                    //will set the newR to HeroRow 
+                    newR = HeroRow;
+                }
+                //will check if newC is greater then numCols 
+                if(newC>=numCols || newC==(size_t)-1)
+                {
+                    //will set the newC 
+                    newC=HeroCol;
+                }
+            }
+            //will for the Out of bounds checking error , this code was already here i did not add it 
+            try {
+                // hero attempts to move out-of-bounds in rows
+                if (newR < 0 || newR >= numRows) { 
+                    throw runtime_error("Hero trying to move out-of-bounds with an invalid row");
+                    
+                } 
+            }
+            //will use catch, this code was already here 
+            catch (runtime_error& excpt) {
+                cout << excpt.what() << endl;
+                newR = HeroRow;
+                newC = HeroCol;
+                cout << "Changing row for Hero position to stay in-bounds" << endl;
+            }
+            
+
+
+            //will now see the target cell and see which one is it 
+            BoardCell* theBigTarget = board(newR, newC);
+
+
+            //will use try 
+            try{
+                //will check if the target is barrier 
+                if(theBigTarget->isBarrier())
+                {
+                    //will throw the runtime error 
+                    throw runtime_error("Hero hits wall");
+                }
+            }
+            //will use catch 
+            catch(runtime_error&)
+            {
+                //will create the d for Row and set it to the int of newR minus the int of HeroRow 
+                int dR = (int)newR - (int)HeroRow;
+                //will be same for the dColumn side
+                int dC = (int)newC - (int)HeroCol;
+                //will use size_t for it store any big num and set tryRow for HeroRow plus the dRow on top 
+                size_t tryR = HeroRow + dR;
+                //will be same for try Column side 
+                size_t tryC = HeroCol;
+                //will be boolean as I will check if it slid and change it later 
+                bool slid = false;
+
+                //will check if the dRow side is not 0, if tryR is less than numRows and if the board is not Barrier 
+                if(dR!=0 && tryR<numRows && !board(tryR, tryC)->isBarrier())
+                {
+                    //wll set the newR to try Row 
+                    newR = tryR;
+                    //will be seting new C 
+                    newC = tryC;
+                    //will set slide to true 
+                    slid = true;
+                }
+                else 
+                {
+                    //will set the tryRow side 
+                    tryR = HeroRow;
+                    //will set for column 
+                    tryC = HeroCol+dC;
+                    //will check for the dColumn side 
+                    if(dC!=0 && tryC < numCols&&!board(tryR, tryC)->isBarrier())
+                    {
+                        //will set the newRow 
+                        newR = tryR;
+                        //will be for newC 
+                        newC = tryC;
+                        //will set slid 
+                        slid = true;
+                    }
+                }
+                //will check if slid is true 
+                if(!slid)
+                {
+                    //will set newR to HeroRow 
+                    newR = HeroRow;
+                    //will set newC
+                    newC = HeroCol;
+
+                }
+                //will then set the target to board 
+                theBigTarget = board(newR, newC);
+            }
+            // //will be for the isBarrier from baordcell.h 
+            // if(theBigTarget->isBarrier())
+            // {
+            //     //will print 
+            //     cout << "Hero has hit a Wall" << endl;
+            //     //will set new R and newC
+            //     newR = HeroRow;
+            //     newC = HeroCol;
+            //     //will set the target to board  
+            //     // theBigTarget = board(newR, newC);
+            //     theBigTarget=heroCell;
+            // }
+
+        
+
+            //will be for when hero reaches the exit lladder
+            if(theBigTarget->isExit())
+            {
+                //will delete the board 
+                delete board(HeroRow, HeroCol);
+                //will set to new nothing function 
+                board(HeroRow, HeroCol) = new Nothing(HeroRow, HeroCol);
+
+                //will set game to won because thats wha happened 
+                wonGame = true;
+                    
+                //will mean that hero left board and it won  so returns false;
+                return false;
+            }
+
+
+            //will be if hero falls in to the deeeeep abysss 
+            if(theBigTarget->isHole())
+            {
+                //will delete the board 
+                delete board(HeroRow, HeroCol);
+                //will set to new nothing function 
+                board(HeroRow, HeroCol) = new Nothing(HeroRow, HeroCol);
+
+                HeroRow = HeroCol = (size_t)-1;
+                //will mean that the hero is deead
+                return false;
+
+            }
+
+
+
+            //will be for if the hero walks into a baddieee and diiies
+            if(theBigTarget->isBaddie())
+            {
+                //will delete the board 
+                delete board(HeroRow, HeroCol);
+                //will set to new nothing function 
+                board(HeroRow, HeroCol) = new Nothing(HeroRow, HeroCol);
+
+                HeroRow = HeroCol = (size_t)-1;
+                //will mean thet the hero is ddeead
+                return false;
+            }
+
+            //will be to move hero into an empty space  
+            if(theBigTarget->isSpace())
+            {
+                //will be removing the old position 
+                delete board(HeroRow, HeroCol);
+                //will set to new nothing function 
+                board(HeroRow, HeroCol) =new Nothing(HeroRow, HeroCol);
+
+
+                //will make hero on a new cell
+                delete theBigTarget;
+                //will set the board to new hero if this happes 
+                board(newR, newC) = new Hero(newR, newC);
+
+
+                HeroRow = newR;
+                HeroCol = newC;
+                // //will then update the gameoard herorow and herocolumn inside boardboard 
+                // findHero();
+                // //will mean hero still alive inside  
+                // return true;
+            }
+
+            //will then check if the HeroRow is invalid or if the column too 
+            if(HeroRow==(size_t)-1 || HeroCol==(size_t)-1)
+            {
+                //will return false 
+                return false;
+            }
+
+
+            //will check for the numRows by looping 
+            for(size_t r=0; r<board.numrows(); r++)
+            {   
+                //will loop for the numcols side 
+                for(size_t c=0; c<board.numcols(r); c++)
+                {
+                    //will create new BoardCell called cell and set to board  
+                    BoardCell* cell = board(r,c);
+
+
+                    //will check if the cell is not baddie or if moved 
+                    if(!cell->isBaddie() || cell->getMoved())
+                    {   
+                        //will then continue 
+                        continue;
+                    }
+
+                    //will use size_t for bR to be any big number and set it to the row 
+                    size_t bR =r;
+                    //will be same but setting to the column 
+                    size_t bC = c;
+                    //will set the cell to attemptMoveTo function 
+                    cell->attemptMoveTo(bR, bC, HeroRow, HeroCol);
+
+                    //will use the try 
+                    try{
+                        //will check if the row for b is >= numRows or if bColum is invalid 
+                        if(bR>=numRows || bC >=(size_t)-1)
+                        {   
+                            //will be runtime error 
+                            throw runtime_error("Baddie attempted out of bounds");
+                        }
+                    }
+                    //will catch 
+                    catch(runtime_error&)
+                    {
+                        //will set the bRow to the r 
+                        bR = r;
+                        //will be c which is column 
+                        bC = c;
+                    }
+
+                    //will create new cell called theSecondBigTarget 
+                    BoardCell* theSecondBigTarget = board(bR, bC);
+                    //will check if it is barrier or if exitted 
+                    if(theSecondBigTarget->isBarrier() || theSecondBigTarget->isExit())
+                    {
+                        //will set to true 
+                        cell->setMoved(true);
+                        //will continue 
+                        continue;
+                    }
+                    
+                    //will check if the target for b is hole 
+                    if(theSecondBigTarget->isHole())
+                    {
+                        //will delete the board 
+                        delete board(r,c);
+                        //will create new Nothing function 
+                        board(r,c) = new Nothing(r,c);
+                        //will contineu 
+                        continue;
+                    }
+                    //will check if theSecondBigTarget is hero 
+                    if(theSecondBigTarget->isHero())
+                    {
+                        //will delete 
+                        delete board(HeroRow, HeroCol);
+                        //will set to new Nothing 
+                        board(HeroRow, HeroCol) = new Nothing(HeroRow, HeroCol);
+
+                        
+                        //will mean that none of row or column s valid 
+                        HeroRow = HeroCol = (size_t)-1;
+                        return false;
+                    }
+                    //will check if target is baddie and if not row and col 
+                    if(theSecondBigTarget->isBaddie() && !(bR==r && bC==c))
+                    {
+                        //wll be true 
+                        cell->setMoved(true);
+                        continue;
+                    }
+
+                    if(theSecondBigTarget->isSpace() && !(bR==r && bC==c))
+                    {
+                        //will creating new moving board cell 
+                        BoardCell* moving = board(r,c);
+                        //will set to new Nothing 
+                        board(r,c) = new Nothing(r,c);
+
+                        //will delete the theSecondBigTarget 
+                        delete theSecondBigTarget;
+                        board(bR, bC) = moving;
+
+                        //will set row to bR 
+                        moving->setRow(bR);
+                        //will be for bColumn 
+                        moving->setCol(bC);
+                        //will be true 
+                        moving->setMoved(true);
+                        continue;
+                    }
+                    //will be true 
+                    cell->setMoved(true);
+                }
+            }
+            
+            //will check if the HeroRow is invalid same with Hero colum 
+            if(HeroRow==(size_t)-1 || HeroCol==(size_t)-1)
+            {
+                return false;
+            }
+
+            // etc.
+
+            //will this mean default and that hero stays put or same 
+        
+            return true;
+        }
+        
+    
+};
+
+
+
+#endif //_GAMEBOARD_H
+
+
+
+
+
+
+//***Below is part 2: "boardcell.h"
+// boardcell.h
+//
+// BoardCell class starter code for course project
+// University of Illinois at Chicago
+// CS 211 - Programming Practicum
+// Original Author: Professor Scott Reckinger
+//
+
+#ifndef _BOARDCELL_H
+#define _BOARDCELL_H
+
+using namespace std;
+
+// First, the BoardCell abstract base class 
+
+class BoardCell {
+	
+    public:  
+		BoardCell() {} // default contstructor (do nothing)
+        virtual ~BoardCell() {} // destructor (do nothing)
+        
+        virtual char display( ) = 0; // pure virtual function; this is an abstract base class
+
+    	virtual void attemptMoveTo(size_t& newR, size_t& newC, size_t hRow, size_t hCol) {
+            
+            //------------------------------------------------------------
+            // TODO: write the base class funtion for a board cell's 
+            //       attempted move to position (newR,newC). 
+            //
+            //       The default action is to stay put, i.e. new position 
+            //       (newR, newC) is same as old position (myRow, myCol).
+            //
+            //       Note: the Hero's current position (hRow,hCol) is
+            //       needed for this polymorphic function in some derived
+            //       classes, specifically for Baddie movement
+            //------------------------------------------------------------
+
+            //will set the new Row to the getRow(); function
+            newR= getRow();
+            //will set the new column to the get column function 
+            newC = getCol();
+            
+            // newR = 0; // modify/remove this line
+            // newC = 0; // modify/remove this line
+            
+        }
+
+        
+        virtual bool isHero( ) {return false;}
+    	virtual bool isBaddie( ) {return false;}
+    	virtual bool isSpace( ) {return false;}
+        virtual bool isBarrier( ) {return false;}
+        virtual bool isHole( ) {return false;}
+    	virtual bool isExit( ) {return false;}
+    	virtual bool isStatic( ) {return true;}
+
+        virtual void setPower(int num) {}
+        virtual int getPower() {return 1;}
+        virtual void setNextMove(char inChar) {}
+        
+        void setMoved(bool m) {moved = m;}
+        bool getMoved() {return moved;}
+        void setRow(size_t r) {myRow = r;}
+        size_t getRow() {return myRow;}
+        void setCol(size_t c) {myCol = c;}
+        size_t getCol() {return myCol;}
+        void setPos(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+
+    private:
+        size_t myRow; // current row for this board cell in a 2D grid
+        size_t myCol; // current column for this board cell in a 2D grid
+        bool moved;   // true = this board cell already moved in the current round
+
+}; // BoardCell (abstract base class)
+
+
+// Then, all the derived classes
+
+class Hero: public BoardCell {
+	
+    public:
+    	Hero(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        
+        virtual bool isHero( ) {return true;}
+        virtual bool isStatic( ) {return false;}
+        virtual char display( ) {return 'H';}
+        
+        virtual void setNextMove(char inChar ) {
+            nextMove = inChar;
+        }
+    	
+        virtual void attemptMoveTo(size_t& newR, size_t& newC, size_t hRow, size_t hCol) {
+            //------------------------------------------------------------------------
+            // TODO: write attemptMoveTo() for Hero 
+            //      
+            //      Hero's attempted move is determined by the nextMove data member 
+            //      analyze nextMove to determine attempted new position for Hero
+            //          'q' = up and left       'w' = up        'e' = up and right
+            //          'a' = left              's' = stay      'd' = right
+            //          'z' = down and left     'x' = down      'c' = down and right
+            //       interpret ANY other input as 's' = stay
+            //------------------------------------------------------------------------
+            
+            //will set the newRow to getRow() function
+            newR = getRow();
+            //will set the new Column to the getCol function
+            newC = getCol();
+
+            //will convert them to lowercase just in case it needs to be 
+            char lc = nextMove;
+
+            //will move based on the input:
+            //will be up left
+            if(lc =='q')
+            {
+                //will set the newr to getRow()-1
+                newR =getRow()-1;
+                //will set the newC to getCol() minus 1
+                newC =getCol()-1;
+            }
+            //will check if lc is w, and go up
+            else if(lc=='w')
+            {
+                //will set the newR to getRow
+                newR =getRow()-1;
+            }
+            //will check if lc is e and be up-right
+            else if(lc=='e')
+            {
+                //will set the newR to getRow minus 1;
+                newR = getRow()-1;
+                //will set the newC to getCol +1;
+                newC = getCol()+1;
+            }
+            //will check if lc is a and move left
+            else if(lc=='a')
+            {
+                //will set the newC to getCol-1;
+                newC = getCol()-1;
+            }
+            //will check if lc is s and will stay
+            else if(lc=='s')
+            { 
+                //nothing needs to basically happen is lc is s
+            }
+            //will check if lc is 'd' and be right 
+            else if(lc=='d')
+            {
+                //will set newC to getCol+1
+                newC = getCol()+1;
+            }
+            //will check if lc is z and be down to the left
+            else if(lc=='z')
+            {
+                //will set the newR to getRow+1;
+                newR = getRow()+1;
+                //will set the new column to getCol minus 1;
+                newC = getCol()-1;
+
+            }
+            //will check if lc is x and be down
+            else if(lc=='x')
+            {
+                //will set the getRow plus 1 to newR
+                newR = getRow()+1;
+            }
+            //will check if lc is c and be down-right
+            else if(lc=='c')
+            {
+                //will set newRow to getRow plus 1
+                newR = getRow()+1;
+                //will set the column new to the getColumn plus 1;
+                newC = getCol()+1;
+            }
+            //will be for any other condition bro 
+            // else 
+            // {
+            //     //will stay same meaning its already set, for any other character
+            // }
+
+            // newR = 0; // modify/remove this line
+            // newC = 0; // modify/remove this line
+        }
+
+    private:
+        char nextMove;
+
+}; // Hero
+
+
+class Monster: public BoardCell {
+    
+    public:
+		Monster(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+            power = 1;
+        }
+        
+        virtual bool isBaddie( ) {return true;}
+        virtual bool isStatic( ) {return false;}
+        
+        virtual char display( ) {
+            if (power == 2) {
+                return 'M'; // Super Monster
+            } else {
+                return 'm'; // Monster
+            } 
+        }
+
+        virtual void setPower(int num) {
+            power = num;
+        }
+
+        virtual int getPower() {
+            return power;
+        }
+        
+    	virtual void attemptMoveTo(size_t& newR, size_t& newC, size_t hRow, size_t hCol) {
+            
+            //------------------------------------------------------------------------
+            // TODO: write attemptMoveTo() for Monster 
+            //      
+            //       Monsters always attempt to navigate toward the hero;
+            //          the hero's position is passed in as (hRow,hCol);
+            //              - regular monsters attempt to move...
+            //                  1 step vertically closer to hero
+            //                  (unless already in same column)
+            //                              AND 
+            //                  1 step horizontally closer to hero
+            //                  (unless already in same row)
+            //              - super monsters attempt to move...
+            //                  2 steps vertically closer to hero
+            //                  (unless already in same column)
+            //                              AND 
+            //                  2 steps horizontally closer to hero
+            //                  (unless already in same row)
+            //          note: super monsters are BIG and CANNOT make 1-step moves in
+            //                either direction; i.e. if they move vertically or 
+            //                horizontally, it must be a 2-step move in either/both 
+            //                direction(s)
+            //------------------------------------------------------------------------
+            
+            //will be setting super to 2 and regular to 1
+            //basically if power is equal to 2, than result is 2, if not than result is 1
+            int stepper = (power==2 ? 2:1);
+
+            //will be setting newR to getRow() and newC to getCol() function
+            newR= getRow();
+            //will be for newC 
+            newC = getCol();
+
+
+            //will be for the vertical movement toward hero
+            //will check if hRow is less than getRow()
+            if(hRow< getRow())
+            {
+                //will decrement newR by the step varable I made above, will use size_t and longs to store big num 
+                newR = (size_t)((long long)newR-stepper);
+            }
+            //will check hRow is greater than getRow()) function
+            else if(hRow> getRow())
+            {
+                //will move down 
+                newR = newR+stepper;
+            }
+
+            //will be for horizontal mvoement toward the hero
+            //will check if the hColumn is less than getCol function
+            if(hCol < getCol())
+            {
+                //will decrease newC by the stepper, will move left and uses size_t and long long to stroe any big num 
+                newC = (size_t)((long long)newC-stepper);
+            }
+            //will check if hColumn is greater than getCol())
+            else if(hCol> getCol())
+            {
+                //will increase the newC by the stepper;
+                newC = newC+stepper;
+            }
+
+            // newR = 0; // modify/remove this line
+            // newC = 0; // modify/remove this line
+        }
+    
+    private:
+        int power; // power = 1 for Monster, power = 2 for SuperMonster
+
+}; // Monster
+
+class Bat: public BoardCell {
+    public:
+		Bat(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        virtual bool isBaddie( ) {return true;}
+        virtual bool isStatic( ) {return false;}
+        virtual char display( ) {return '~';}
+        
+    	virtual void attemptMoveTo(size_t& newR, size_t& newC, size_t hRow, size_t hCol) {
+            //------------------------------------------------------------------------
+            // TODO: write attemptMoveTo() for Bat 
+            //      
+            //       Bats always attempt to navigate to the hero's column, 
+            //       but cannot change rows;
+            //------------------------------------------------------------------------
+            
+            //wll for Bat DO NOT changing row
+            newR = getRow();
+            
+            //will also change the newC to getCol() function  to avoid errors in submission 
+            newC = hCol;
+            
+            //***I did not need the code below**
+            // //will check if hCol is less than getCol())
+            // if(hCol< col)
+            // {
+            //     //wll set the newC to getCol() minus by 1, only if col is > 0
+            //     newC = (col>0) ? col-1:0;
+
+            // }
+            // //will check if hColumn is > than getCol())
+            // else if(hCol>col)
+            // {
+            //     //will set the newC equal to getCol() plus 1;
+            //     // newC =col+1;
+
+            // }
+            // // //will be for any other classes
+            // else
+            // {
+            //     // will be for when it is already aligned n
+            //     newC = col;
+            // }
+
+            // newR = 0; // modify/remove this line
+            // newC = 0; // modify/remove this line            
+        }
+
+}; // Bat
+
+
+class Abyss: public BoardCell {
+	public:
+    	Abyss(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        virtual char display( ) {return '#';}
+        virtual bool isHole( ) {return true;}
+}; // Abyss
+
+
+class Wall: public BoardCell {
+	public:
+
+
+    	Wall(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        virtual char display( ) {return '+';}
+    	virtual bool isBarrier( ) {return true;}
+}; // Wall
+
+
+class Nothing: public BoardCell {
+	public:
+    	Nothing(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        virtual char display( ) {return ' ';}
+    	virtual bool isSpace( ) {return true;}
+}; // Nothing
+
+
+class EscapeLadder: public BoardCell {
+	public:
+    	EscapeLadder(size_t r, size_t c) {
+            setRow(r);
+            setCol(c);
+        }
+        virtual char display( ) {return '*';}
+    	virtual bool isExit( ) {return true;}
+}; // EscapeLadder
+
+
+
+
+#endif //_BOARDCELL_H
+
+
+
+
+//***Below is part 2: "grid.h"
+//-----------------------------------------------------
+// TODO:  Copy in your Grid class OR replace this 
+//          file with grid.h from Project 05 Part 1.
+//          This class is tested here using 
+//          the same test cases from Project 05 Part 1.
+//-----------------------------------------------------
+
+//-------------------------------------------------
+// TODO:  Write file header.
+/*
+project description:This project is basically about creating a Grid class which
+can hold a table of any type of data like numbers or letters. I can make a grid of
+any size I wanted or uses a 4x4 grid while each spot will start with a default value.
+The grid should copy itself safely so that I can make new gris from old ones wthout
+mixing them each up. You can get or change any element using row and column numbers.
+The grid can keep track of how many rows and columns it has. It also can clean up
+memory when the person is done so that the computer does not waste any space.
+*/
+//-------------------------------------------------
+
+//******I COPIED THE MY GRID.H FILE FROM PROJECT 5 PART 1 BELOW**************
+
+//-------------------------------------------------
+// TODO:  Update the member function comments in 
+//        your own style.
+//-------------------------------------------------
+/*
+comments will be below
+*/
+
+#pragma once
+
+#include <iostream>
+#include <exception>
+#include <stdexcept>
+#include <algorithm>
+
+using namespace std;
+
+template<typename T>
+class Grid {
+private:
+  struct ROW {
+    T*  Cols;     // array of column elements
+    size_t NumCols;  // total # of columns (0..NumCols-1)
+  };
+
+  ROW* Rows;     // array of ROWs
+  size_t  NumRows;  // total # of rows (0..NumRows-1)
+    
+public:
+  //
+  // default constructor:
+  //
+  // Called automatically by to construct a 4x4 Grid. 
+  // All elements initialized to default value of T.
+  //
+
+  //will basically build grid with 4 rows/ columns and every spot starts as default value of T
+
+  Grid() {
+    Rows = new ROW[4];  // 4 rows
+    NumRows = 4;
+
+    // initialize each row to have 4 columns:
+    for (size_t r = 0; r < NumRows; ++r) {
+      Rows[r].Cols = new T[4];
+      Rows[r].NumCols = 4;
+
+      // initialize the elements to their default value:
+      for (size_t c = 0; c < Rows[r].NumCols; ++c) {
+        Rows[r].Cols[c] = T();  // default value for type T:
+      }
+    }
+  }
+
+  //
+  // parameterized constructor:
+  //
+  // Called automatically to construct a Grid 
+  // with R rows, where each row has C columns. 
+  // All elements initialized to default value of T.
+  //
+
+  //will basically make a grid with number of rows=R and num of columns row=C, each element starts with value of T
+  Grid(size_t R, size_t C) {
+    //-------------------------------------------------
+    // TODO:  Write this parameterized constructor.
+    //-------------------------------------------------
+
+    //will check make empty grid if size is not valid, to avoid error
+    if(R==0 || C==0)
+    {
+        //will set num to 0
+        NumRows = 0;
+        //will set rows to null
+        Rows= nullptr;
+        //will then return
+        return;
+    }
+
+    ////wll for allocating rows arrays of size R and setting NumRows to r
+    //will be for setting the NumRows 
+    NumRows =R;
+    //will be for creating new ROW using the Rows
+    Rows= new ROW[R];
+
+    //will then loop through the R using size_t for it can store any large number
+    for(size_t rowrow=0; rowrow<R; rowrow++)
+    {
+        //will set the columns to new T
+        Rows[rowrow].Cols =new T[C];
+        //will set the NumCols to c
+        Rows[rowrow].NumCols= C;
+
+        //will loop through the C  using size_t so it can store any big num
+        for(size_t smallerC=0; smallerC<C; smallerC++)
+        {
+            //will set the rows and columns to T();
+            Rows[rowrow].Cols[smallerC] =T();
+        }
+    }
+  }
+    
+  //
+  // destructor:
+  //
+  // Called automatically to free memory for this Grid.
+  //
+
+  //will just free all the memory that has created with "new" and delete every row columns, delete the row list
+  virtual ~Grid() {
+
+      //-------------------------------------------------
+      // TODO:  Write this destructor.
+      //-------------------------------------------------
+
+
+    //will check if the Rows is not null pointer
+    if(Rows !=nullptr)
+    {
+        //will the loop through NumRows using size_t for any big number
+        for(size_t row=0; row<NumRows; row=row+1)
+        {
+            //will then delete that element for column
+            delete[] Rows[row].Cols;
+        }
+
+        //will delete that rows as well 
+        delete[] Rows;
+    }
+  }
+
+
+  //
+  // copy constructor:
+  //
+  // Called automatically to construct a Grid that contains a
+  // copy of an existing Grid.  Example: this occurs when passing
+  // Grid as a parameter by value
+  //
+  //   void somefunction(Grid<int> G2)  <--- G2 is a copy:
+  //   { ... }
+  //
+
+  //this will basically make new grid that is copy of another, all rows/columns are rebuilt, and basically be "deep copy"
+  Grid(const Grid<T>& other) {
+      
+      //-------------------------------------------------
+      // TODO:  Write this copy constructor.
+      //-------------------------------------------------
+
+    //will check if other grid is empty
+    if(other.Rows==nullptr || other.NumRows==0)
+    {
+        //will set the NumRows to 0
+        NumRows = 0;
+        //will set the rows
+        Rows= nullptr;
+        //will then return finally
+        return;
+    }
+
+
+    //will set the NumRows to the NumRows other
+    NumRows =other.NumRows;
+    //will then create new ROW of Rows
+    Rows= new ROW[NumRows];
+
+    //will then loop through the numrows using the size_t to store any big num
+    for(size_t row=0; row<NumRows; row++)
+    {
+        //will set the row element of rows to other
+        Rows[row].NumCols =other.Rows[row].NumCols;
+        //will set the cols of rows to new T
+        Rows[row].Cols = new T[Rows[row].NumCols];
+
+        //will then loop through the Numcols of the r element of Rows
+        for(size_t col=0; col<Rows[row].NumCols; col++)
+        {
+            //will set the Cols of rows to other.rows.cols
+            Rows[row].Cols[col] =other.Rows[row].Cols[col];
+        }
+    }
+  }
+    
+  //
+  // copy operator=
+  //
+  // Called when one Grid is assigned into another, i.e. this = other;
+  //
+
+  //will let program write grid1=grid2, delete old grid, copies all rows/columns from other grid(deep copy again)
+  Grid& operator=(const Grid& other) {
+    //   Grid<T> temp;
+      
+      //-------------------------------------------------
+      // TODO:  Write this copy operator.
+      //-------------------------------------------------
+
+      //wll check if the this is equal to the address of other
+      if(this== &other)
+      {
+        //will return this 
+        return *this;
+      }
+
+      //will then free the memory to avoid leaks
+      //will check if Rows is not nullptr
+      if(Rows!=nullptr)
+      {
+        for(size_t r=0; r<NumRows; r=r+1)
+        {
+            //will delete the Cols of Rows
+            delete[] Rows[r].Cols;
+        }
+        //will then delete that rows
+        delete[] Rows;
+      }
+
+      //will check if other is empty for avoiding errors
+      if(other.Rows==nullptr || other.NumRows==0)
+      {
+        //will set the NumRows, Rows and reutrn this*
+        NumRows=0;
+        Rows=nullptr;
+        return *this;
+      }
+
+      //will make new memoery for the NumRows and Rows
+      NumRows =other.NumRows;
+      //will be for the new ROW
+      Rows= new ROW[NumRows];
+
+      //will loop through the NumRows using size_t for it to store any big num
+      for(size_t row=0; row<NumRows; row++)
+      {
+        //will set the NumCols to other Numscols
+        Rows[row].NumCols = other.Rows[row].NumCols;
+        //will set the Cols to new T
+        Rows[row].Cols =new T[Rows[row].NumCols];
+
+        //wil then loop through the NumCols of rows inside Rows
+        for(size_t c=0; c<Rows[row].NumCols; c++)
+        {
+            //will set the c insdie cols inside row of Rows to other
+            Rows[row].Cols[c] = other.Rows[row].Cols[c];
+        }
+      }
+
+    //will then return *this at the end finally
+    return *this;  // TODO: update this, it is only here so code compiles.
+      
+  }
+
+  //
+  // numrows
+  //
+  // Returns the # of rows in the Grid.  
+  // The indices for these rows are 0..numrows-1.
+  //
+
+  //will just return how many rows the grid has 
+  size_t numrows() const {
+      
+    //-------------------------------------------------
+    // TODO:  Write this function.
+    //-------------------------------------------------
+        
+    //wil then return the NumRows
+    return NumRows;  // TODO:  update this, it is only here so code compiles.
+  }
+  
+
+  //
+  // numcols
+  //
+  // Returns the # of columns in row r.  
+  // The indices for these columns are 0..numcols-1.  
+  // For now, each row has the same number of columns.
+  //
+
+  //will return amount of columns row r has, and where all rows have the same num of columns 
+  size_t numcols(size_t r) const {
+      
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+        //will be if the rows are null and numrows is 0
+        if(Rows==nullptr || NumRows==0)
+        {
+            //will return 0
+            return 0;
+        }
+        //will check if r is greater or equal to NumRows
+        if(r>= NumRows)
+        {
+            //will return 0 to continue
+            return 0;
+        }
+
+      //will be for return the NumCols of Rows element
+      return Rows[r].NumCols;  // TODO: update this, it is only here so code compiles.
+
+  }
+
+
+  //
+  // size
+  //
+  // Returns the total # of elements in the Grid.
+  //
+
+  //will return amount of total elements in the grid lke example: a 4x4 grid wll have 16 elements
+  size_t size() const {
+      
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+    
+      //will store the total using size_t so it can hold any big num
+      size_t theTotal=0;
+
+
+      //will check if the NumRows is 0 or if NumRows is 0
+      if(Rows== nullptr || NumRows==0)
+      {
+        //will retrun 0 and continue the program
+        return 0;
+      }
+      
+      //will loop thorugh numrows and add to total size 
+      for(size_t row=0; row<NumRows; row++)
+      {
+        theTotal += Rows[row].NumCols;
+      }
+
+      //will return the NumRows times the NumCols at index 0 of Rows
+      return theTotal;  // TODO: update this, it is only here so code compiles.
+  }
+
+
+  //
+  // ()
+  //
+  // Returns a reference to the element at location (r, c);
+  // this allows you to access or assign the element:
+  //
+  //    grid(r, c) = ...
+  //    cout << grid(r, c) << endl;
+  //
+
+  //will let me get a grid spot using the parenthesis example is: grid(r,c)=10; cout<<grid(r,c);
+  T& operator()(size_t r, size_t c) {
+    //   T temp;
+      
+    
+      //-------------------------------------------------
+      // TODO:  Write the parentheses overloaded operator
+      //-------------------------------------------------
+
+
+    //will be for edge case and check if r>=NumRows  or if c>=NuCols of c[r] and have runtime error to avoid errors
+    if(r>=NumRows || c>=Rows[r].NumCols)
+    {
+        throw out_of_range("Grid indices out of range");
+    }
+
+
+     //will then return the element c element of Cols of r element of Rows
+      return Rows[r].Cols[c];  // TODO: update this, it is only here so code compiles.
+  }
+
+  //
+  // _output
+  //
+  // Outputs the contents of the grid; for debugging purposes.  
+  // This is not tested.
+  //
+
+  //will just print the entire grid to screen and mainly for debugging or checking the code purposes
+  void _output() {
+
+      //-------------------------------------------------
+      // TODO:  Write this function.
+      //-------------------------------------------------
+      
+
+      //will loop through the NumRows using size_t for it to store any big number
+      for(size_t row=0; row<NumRows; row++)
+      {
+        //will then loop through the NumCols of r element of Rows
+        for(size_t col =0; col<Rows[row].NumCols; col=col+1)
+        {
+            //will then print that element inside rows and Cols
+            cout <<Rows[row].Cols[col] <<" ";
+        }
+
+        //will print the newline to avod errors
+        cout << endl;
+      }
+  }
+};
