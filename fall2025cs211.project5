@@ -1,4 +1,4 @@
-//This file includes project 5 part 1(has 2 files called: "EscapeTheLabyrinth.h" and "grid.h") and part 2(has 3 files: "gameboard.h", "boardcell.h", and "grid.h"(from part 1))
+//This file includes project 5 and has total of 5 files. part 1(has 2 files called: "EscapeTheLabyrinth.h" and "grid.h") and part 2(has 3 files: "gameboard.h", "boardcell.h", and "grid.h"(from part 1))
 
 //***Below is part 1: "EscapeTheLabyrinth.h"
 #include <utility>
