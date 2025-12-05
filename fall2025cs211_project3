@@ -1,5 +1,5 @@
 /*
-header:Akio Pancho, 10/21/25, 4pm, lab Thurs 10am, project 3
+header:, 10/21/25, 4pm, lab Thurs 10am, project 3
 description: This project will create a type of spelling bee solver game in c.
 It will take a group of letters, called hives, that will find valid words from
 a dictioanry that only uses those letters. Each word must have one special needed
