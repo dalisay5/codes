@@ -1,0 +1,84 @@
+/*Homework 1
+Released: Tuesday, January 20th
+Due: Tuesday, January 27th at 5pm on Blackboard
+All work must be individual
+1 Setting up
+Before beginning, make sure that Java and Maven are installed on your computer. There is
+an install guide posted to blackboard. Download the hw1.zip and unpack the folder hw1
+where you want to run your code. In IntelliJ go to File → New → Project from existing
+sources. Import as a maven file. Verify that the following run configurations work. You may
+need to pair your project with the Java 11 compiler:
+• clean: this will delete all compiled class files and allow the project to be build from
+stratch
+• compile: this will compile all class files
+• test : this will run the tests
+By running test, you will see one test for each of four functions (described on the next
+page). You must implement each of the four functions. The HW zip comes with a build
+maven directory and should contain the following files.
+• /src/main/java/MeansCalculations.java: this class contains four static methods
+that you will need to implement. They are described in the next section.
+• /src/main/java/MyMeans.java: this class contains all the utilities code for reading
+test data from a file and populating values and weights for testing. Do not modify
+this file
+• /src/test/java/MeansCalculationsTest.java: this class contains the test suite.
+There is one test for each of the four functions below. Do not modify this file
+• /src/main/resources/values.txt, values2.txt, weights2.txt These files are the
+test values used for the JUnit tests in MeansCalculationsTest.java. Do not modify
+these files
+1
+2 Means Calculations
+Implement the following four methods in MeansCalculations.java. You should not alter
+any other pieces of code
+2.1 arithmeticMean(double[] values)
+Calculate the arithmetic mean of the array values. Let values[i] be denoted by vi
+. The
+arithmetic mean is defined as follows. Let n be the number of values
+Pn
+i=0 vi
+n
+For example, the arithmetic mean of [2, 8] is 2+8
+2 = 5
+2.2 geometricMean(double[] values)
+Calculate the arithmetic mean of the array values. Let values[i] be denoted by vi
+. The
+arithmetic mean is defined as follows. Let n be the number of values
+(
+Yn
+i=0
+vi)
+1
+n
+For example, the geometric mean [2, 8] is (2 ∗ 8)(
+1
+2
+) = 4
+2.3 weightedArithmeticMean(double[] values, double[] weights)
+Calculate the arithmetic mean of the array and weight values. Let values[i] be denoted by
+vi
+. Let weights[i] be denoted by wi The weighted arithmetic mean is defined as follows.
+Let n be the number of values
+Pn
+i=0(vi ∗ wi)
+Pn
+i=0 wi
+For example, the arithmetic mean of values [2, 8] with weights [1, 2] is 2∗1+8∗2
+3 = 6
+2.4 movingGeometricMean(double[] values)
+Calculate the geometric mean of the array values. The moving geometric mean of an array
+of values is an array of the same length where each is the geometric mean of objects to that
+point.. For example, the moving geometric mean of [2, 8] would be 2(
+1
+1
+) = 2 and (2∗8)(
+1
+2
+) = 4.
+Hint: the first element of the moving geometric mean must always be equal to the first element
+of values and the last element should be the total geometric mean
+2
+3 Submitting your work
+Once your code passes all tests when conducting a maven test run, you are ready to submit.
+Before submitting, you should run a maven clean build so that there are no unnecessary
+.class files sent with your submission. Create a zip file of the hw1 directory and submit the
+zipped file to blackboard.
+3*/
