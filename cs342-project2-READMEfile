@@ -1,4 +1,4 @@
-Project description =
+Project weather website description =
 The Chicago Weather App that I made was made with java. It basically shows weather information for Chicago city using data from the National 
 Weather Service which is an API. The app has two screens. The first screen basically shows today’s weather, including the temperature, a short 
 description like if its sunny or cloudy), and the chance of rain. The second screen would be a 3-day forecast of day/night temperatures and wind 
