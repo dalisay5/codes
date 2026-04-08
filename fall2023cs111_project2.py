@@ -1,6 +1,6 @@
 #If statements/ booleans
 # TODO: Write your header comment here.
-#Akio Pancho
+#A
 # COPY AND PASTE YOUR CODE FROM THE PREVIOUS MILESTONE
 # TODO: Write your code here.
 import math
