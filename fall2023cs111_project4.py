@@ -1,6 +1,6 @@
 #FUNCTIONS
 #TODO: Write your header comment here.
-#Akio Pancho, lab 11, Prof Hayes
+#A, lab 11, Prof Hayes
 # Milestone 5 - make a UIC-CS App
 # This will be manually graded by the TAs. It must include:
 
