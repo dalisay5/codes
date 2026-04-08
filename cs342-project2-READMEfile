@@ -1,13 +1,24 @@
 Project description =
-The Chicago Weather App is a desktop application made using Java and JavaFX. It shows real-time weather data from the National 
-Weather Service (NWS) API. The app has two main screens: one for today’s weather and one for a 3-day forecast. The first screen 
-shows the temperature, weather condition, and chance of precipitation. The second screen shows the forecast for the next three days, 
-including day and night temperatures and wind information. I built this project using Java for the main code and JavaFX to create
-the user interface. I also used Maven to help run and manage the project. The weather data comes from an API, and I used the
-provided code to get that data and display it in my app. I also used two design patterns (Adapter and Template Method) to organize
-my code better and make it easier to understand. While working on this project, I focused on making the app easy to use and clear to 
-understand. I added colors and labels so users know what they are looking at. For my above and beyond feature, I added precipitation 
-probability so users can see the chance of rain. I also fixed small bugs like making sure the app runs with Maven and that switching
-between screens works correctly. Overall, this project helped me learn how to build a Java application, use an API, and design a 
-simple user interface.
+The Chicago Weather App that I made was made with java. It basically shows weather information for Chicago city using data from the National 
+Weather Service which is an API. The app has two screens. The first screen basically shows today’s weather, including the temperature, a short 
+description like if its sunny or cloudy), and the chance of rain. The second screen would be a 3-day forecast of day/night temperatures and wind 
+information. This was basically built with JavaFX to create the user interface and Maven to run the program. The weather data comes from an API 
+that was already given in the starter code. I also used two design patterns called the Adapter Pattern and Template Method Pattern to help organize 
+my code and make it easier to understand. While working on this project, I also made sure the app was easy to use. I also added buttons so users can 
+switch between the two screens without any problems. I also added some colors and clear labels so everything is easy to read. For the above and 
+beyond, I included the chance of precipitation, which helps users know if it might rain. Overall, this project helped me learn how to 
+build a Java app, use an API, and design a simple but useful interface.
+
+-Some technologies that were used were
+Java, JavaFX, Maven, and the National Weather Service API
+
+-Some Features=
+It Shows today’s weather (temperature + condition), Shows 3-day forecast (day/night temps and wind info), can go to different scenes,
+simple and colorful background, and i also added precipitation information
+
+You ran this project by the following=
+mvn clean compile exec:java
+
+I learned the following=
+JavaFX, How to get data from an API, organizing code using design patterns, fixing code bugs, and how to design a simple and clear interface
 
