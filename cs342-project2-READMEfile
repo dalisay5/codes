@@ -1,0 +1,13 @@
+Project description =
+The Chicago Weather App is a desktop application made using Java and JavaFX. It shows real-time weather data from the National 
+Weather Service (NWS) API. The app has two main screens: one for today’s weather and one for a 3-day forecast. The first screen 
+shows the temperature, weather condition, and chance of precipitation. The second screen shows the forecast for the next three days, 
+including day and night temperatures and wind information. I built this project using Java for the main code and JavaFX to create
+the user interface. I also used Maven to help run and manage the project. The weather data comes from an API, and I used the
+provided code to get that data and display it in my app. I also used two design patterns (Adapter and Template Method) to organize
+my code better and make it easier to understand. While working on this project, I focused on making the app easy to use and clear to 
+understand. I added colors and labels so users know what they are looking at. For my above and beyond feature, I added precipitation 
+probability so users can see the chance of rain. I also fixed small bugs like making sure the app runs with Maven and that switching
+between screens works correctly. Overall, this project helped me learn how to build a Java application, use an API, and design a 
+simple user interface.
+
