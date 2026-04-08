@@ -1,5 +1,5 @@
 # Final Project
-# Akio Pancho, Partner: Jonathan Rodriguez, Title: The Population Transformation, Prof:Hayes
+# A, Partner: Jonathan Rodriguez, Title: The Population Transformation, Prof:Hayes
 # TODO: A program that gives statistics related to population birth rates of the countries of low birth rate(China, South Korea, Japan) and countries with high birth rate(Niger, Somalia, DRCongo.The 6 statistics include: birth rates, life expectancy, death rates, and population pyramids which will be Animated...Citations: We are using statistics from the World Bank website
 ''' Our Program has 5 parts
 1.)Welcome Screen: (Event Driven Program that will bring user to next part) Akio 
