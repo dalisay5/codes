@@ -1,6 +1,6 @@
 /*
 INCLUDES other files, test file is below
-Header: Akio Pancho, 10/29/25, cs251, 12pm class, lab:tuesday 12pm
+Header: A, 10/29/25, cs251, 12pm class, lab:tuesday 12pm
 Description: Project 4 is about making a binary search tree map(BSTMap).
 The BSTMap will store pairs of keys and values so you can quickly find,
 add, or remove items. A lot of helper functions were created for tasks
