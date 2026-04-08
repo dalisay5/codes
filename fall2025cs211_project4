@@ -2,7 +2,7 @@
 ANOTHER FILE: MAKE FILE IS AT VERY BOTTOM THIS CODE
 */
 /*
-Akio Pancho, 11/11/25, project 4, CS211, Lab: thurs 10pm
+A, 11/11/25, project 4, CS211, Lab: thurs 10pm
 This project is about building a program that finds word ladders, which are basically chains
 of words where each changes only by one letter. The program reads a list of words from a 
 dictionary and lets you pick a start word and an end word. It can find the shortest path
